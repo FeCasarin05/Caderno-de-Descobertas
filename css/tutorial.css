@@ -1,0 +1,368 @@
+/* ════════════════════════════════════════════════════════════
+   TUTORIAL ONBOARDING – Caderno de Descobertas
+   Personagens: Nina (capivara guardiã) & Lira (arara guia)
+════════════════════════════════════════════════════════════ */
+
+/* ── Overlay principal ────────────────────────────────────── */
+#tutorial-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  /* NUNCA bloqueia cliques — deixa a HOME totalmente interativa */
+  pointer-events: none;
+}
+#tutorial-overlay.is-active { pointer-events: none; } /* mantido none mesmo ativo */
+#tutorial-overlay[hidden]   { display: none; }
+
+/* Backdrop translúcido — apenas VISUAL, não bloqueia cliques */
+.tutorial-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(4, 12, 28, 0.48);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+  animation: t-backdrop-in 0.45s ease both;
+  pointer-events: none; /* cliques passam direto para a HOME */
+
+  /* Variáveis de spotlight (atualizadas pelo JS) */
+  --hole-x: 50%;
+  --hole-y: 50%;
+  --hole-rx: 0px;
+  --hole-ry: 0px;
+  transition: --hole-x 0.35s ease, --hole-y 0.35s ease, --hole-rx 0.35s ease, --hole-ry 0.35s ease;
+}
+/* Quando tem elemento destacado, recorta o buraco para deixá-lo 100% visível e nítido */
+.tutorial-backdrop.has-hole {
+  mask-image: radial-gradient(ellipse var(--hole-rx) var(--hole-ry) at var(--hole-x) var(--hole-y), transparent 85%, black 100%);
+  -webkit-mask-image: radial-gradient(ellipse var(--hole-rx) var(--hole-ry) at var(--hole-x) var(--hole-y), transparent 85%, black 100%);
+}
+@keyframes t-backdrop-in { from { opacity: 0 } to { opacity: 1 } }
+
+/* ── Highlight do elemento destacado ─────────────────────── */
+.tutorial-highlight {
+  position: relative  !important;
+  z-index: 450        !important;
+  border-radius: 14px !important;
+  animation: t-pulse 2.2s ease-in-out infinite !important;
+}
+@keyframes t-pulse {
+  0%,100% {
+    box-shadow:
+      0 0 0 3px  rgba(255,220,60,0.95),
+      0 0 0 8px  rgba(255,200,40,0.28),
+      0 0 36px 4px rgba(255,200,40,0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 5px  rgba(255,230,80,1),
+      0 0 0 13px rgba(255,210,50,0.20),
+      0 0 52px 6px rgba(255,200,40,0.55);
+  }
+}
+
+/* Personagens — capturam eventos (só eles e o balão têm pointer-events:auto) */
+.tutorial-character {
+  position: fixed;
+  bottom: 0;
+  z-index: 420;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none; /* invisivel = sem interação */
+  transition: opacity 0.38s ease;
+}
+.tutorial-character.is-visible {
+  opacity: 1;
+  pointer-events: auto; /* visível = pode ser visto/clicado */
+}
+
+/* Nina – aparece à esquerda */
+.tutorial-nina {
+  left: 3%;
+  transform-origin: bottom left;
+}
+.tutorial-nina.is-visible {
+  animation: char-slide-left 0.5s cubic-bezier(0.34,1.4,0.64,1) both;
+}
+@keyframes char-slide-left {
+  from { opacity: 0; transform: translateX(-40px) translateY(16px); }
+  to   { opacity: 1; transform: translateX(0) translateY(0); }
+}
+
+/* Lira – default: aparece à esquerda */
+.tutorial-lira {
+  left: 3%;
+  transform-origin: bottom left;
+}
+.tutorial-lira.is-visible {
+  animation: char-slide-left 0.5s cubic-bezier(0.34,1.4,0.64,1) both;
+}
+
+/* Lira – quando forçada para a direita */
+.tutorial-lira.pos-right {
+  left: auto;
+  right: 3%;
+  transform-origin: bottom right;
+}
+.tutorial-lira.pos-right.is-visible {
+  animation: char-slide-right 0.5s cubic-bezier(0.34,1.4,0.64,1) both;
+}
+@keyframes char-slide-right {
+  from { opacity: 0; transform: translateX(40px) translateY(16px); }
+  to   { opacity: 1; transform: translateX(0) translateY(0); }
+}
+
+/* Imagens das personagens */
+.tutorial-character .tchar-img {
+  width: 220px;
+  height: auto;
+  filter: drop-shadow(0 10px 28px rgba(0,0,0,0.55));
+}
+
+/* Balão de fala — SEMPRE com pointer-events:auto (botões precisam funcionar) */
+.tutorial-bubble {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 430;
+  width: min(540px, calc(100vw - 210px));
+  background: #FFFDF5;
+  border-radius: 26px;
+  padding: 22px 26px 18px;
+  box-shadow:
+    0 24px 72px rgba(0,0,0,0.48),
+    0 0 0 2.5px rgba(245,200,60,0.55),
+    0 0 36px rgba(245,200,60,0.14);
+  animation: bubble-in 0.5s cubic-bezier(0.34,1.4,0.64,1) both;
+  pointer-events: auto; /* Único bloco que realmente captura cliques */
+}
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(28px) scale(0.93); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* Fade rápido ao trocar passo */
+.tutorial-bubble.step-fade {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.97);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.tutorial-bubble.step-show {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+/* Badge da personagem falante */
+.tutorial-char-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 13px 4px 8px;
+  border-radius: 20px;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+  transition: background 0.3s ease;
+}
+.tutorial-char-badge.char-nina {
+  background: linear-gradient(135deg,#78C87A,#4A9C5C);
+  color: #FFF;
+}
+.tutorial-char-badge.char-lira {
+  background: linear-gradient(135deg,#F5903A,#E05010);
+  color: #FFF;
+}
+.char-emoji { font-size: 1.15rem; }
+.char-name  { font-size: 0.82rem; letter-spacing: 0.04em; }
+
+/* Texto da fala */
+.tutorial-text {
+  font-family: var(--font-main);
+  font-size: 1.01rem;
+  font-weight: 700;
+  color: #2D1F0E;
+  line-height: 1.68;
+  margin: 0 0 20px;
+  min-height: 3em; /* evita layout shift ao trocar texto */
+}
+
+/* Linha divisória */
+.tutorial-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(139,94,60,0.14), transparent);
+  margin-bottom: 14px;
+}
+
+/* Navegação */
+.tutorial-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.tutorial-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.tutorial-skip-btn {
+  background: transparent;
+  border: none;
+  color: rgba(80,60,30,0.48);
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 6px;
+  border-radius: 8px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+.tutorial-skip-btn:hover { color: #A31E30; }
+
+.tutorial-prev-btn {
+  background: rgba(255,248,238,0.9);
+  border: 2px solid rgba(139,94,60,0.22);
+  color: #5C3520;
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 800;
+  border-radius: 50px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.tutorial-prev-btn:hover {
+  background: #FFF0D8;
+  border-color: rgba(139,94,60,0.45);
+}
+
+.tutorial-next-btn {
+  background: linear-gradient(135deg,#F5C430 0%,#E08918 100%);
+  border: none;
+  color: #3D1A00;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 50px;
+  padding: 10px 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(224,137,24,0.45);
+  transition: all 0.22s ease;
+  white-space: nowrap;
+}
+.tutorial-next-btn:hover {
+  transform: scale(1.06) translateY(-1px);
+  box-shadow: 0 7px 26px rgba(224,137,24,0.6);
+}
+
+/* Dots de progresso */
+.tutorial-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+}
+.tutorial-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(139,94,60,0.20);
+  border: 1.5px solid rgba(139,94,60,0.22);
+  transition: all 0.25s ease;
+}
+.tutorial-dot.active {
+  background: #E08918;
+  border-color: #E08918;
+  transform: scale(1.38);
+}
+.tutorial-dot.done {
+  background: rgba(78,176,82,0.7);
+  border-color: rgba(78,176,82,0.85);
+}
+
+/* ── Ocultar Nina fixa durante o tutorial ─────────────────── */
+body.tutorial-active #nina-area {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s ease !important;
+}
+
+/* ── Mobile ──────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .tutorial-bubble {
+    width: calc(100vw - 28px);
+    bottom: 14px;
+    padding: 16px 18px 14px;
+    border-radius: 20px;
+  }
+  .tutorial-text { font-size: 0.92rem; }
+  .tutorial-character .tchar-img { width: 150px; }
+  .tutorial-nina { left: 0; }
+  .tutorial-lira { left: 0; }
+  .tutorial-lira.pos-right { left: auto; right: 0; }
+  .tutorial-next-btn { font-size: 0.86rem; padding: 9px 16px; }
+  .tutorial-prev-btn { font-size: 0.8rem;  padding: 8px 12px; }
+  .tutorial-skip-btn { font-size: 0.76rem; }
+}
+
+@media (max-width: 480px) {
+  .tutorial-character .tchar-img { width: 110px; }
+  .tutorial-bubble { border-radius: 16px; padding: 14px 14px 12px; }
+}
+
+@media (orientation: landscape) and (max-height: 550px) {
+  /* Tutorial Nina/Lira miniaturizada */
+  .tutorial-character .tchar-img { 
+    width: 90px; 
+  }
+  
+  /* Balão de diálogo no TOPO para não cobrir personagem nem os botões de baixo */
+  .tutorial-bubble { 
+    bottom: auto;
+    top: 10px;
+    padding: 10px 14px 8px;
+    border-radius: 14px;
+    width: calc(100vw - 40px);
+    animation: bubble-in-top 0.5s cubic-bezier(0.34,1.4,0.64,1) both;
+  }
+  @keyframes bubble-in-top {
+    from { opacity: 0; transform: translateX(-50%) translateY(-28px) scale(0.93); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  }
+  .tutorial-bubble.step-fade {
+    transform: translateX(-50%) scale(0.97) translateY(-10px);
+  }
+  .tutorial-bubble.step-show {
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+
+  .tutorial-char-badge {
+    margin-bottom: 6px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+  }
+  .char-emoji { font-size: 0.9rem; }
+
+  .tutorial-text {
+    font-size: 0.85rem;
+    margin: 0 0 10px;
+    line-height: 1.4;
+    min-height: 2.8em;
+  }
+
+  .tutorial-divider { margin-bottom: 8px; }
+  .tutorial-dots { margin-top: 8px; }
+
+  .tutorial-next-btn {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+  .tutorial-prev-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+}

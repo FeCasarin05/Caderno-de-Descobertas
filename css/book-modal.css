@@ -1,0 +1,486 @@
+
+/* ════════════════════════════════════════════════════════════
+   MODAL LIVRO DE AVENTURAS
+   Capa vermelha fechada + livro aberto (Club Penguin style)
+════════════════════════════════════════════════════════════ */
+
+/* ── Overlay ──────────────────────────────────────────────── */
+#book-modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+#book-modal-overlay[hidden] { display: none; }
+
+.book-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(8,18,38,0.82);
+  backdrop-filter: blur(10px) saturate(0.7);
+  -webkit-backdrop-filter: blur(10px) saturate(0.7);
+  animation: book-backdrop-in 0.35s ease both;
+}
+@keyframes book-backdrop-in { from{opacity:0} to{opacity:1} }
+
+/* ── Modal wrapper ─────────────────────────────────────────── */
+.book-modal {
+  position: relative; z-index: 1;
+  animation: book-open-in 0.5s cubic-bezier(0.34,1.4,0.64,1) both;
+}
+@keyframes book-open-in {
+  0%   { opacity:0; transform:scale(0.9) translateY(28px); }
+  100% { opacity:1; transform:scale(1)   translateY(0); }
+}
+
+/* ── Botao fechar ──────────────────────────────────────────── */
+.book-close-btn {
+  position: absolute; top: -18px; right: -18px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: #5C3520; border: 3px solid #FFF8EE;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 30; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: all 0.22s ease; color: #FFF8EE;
+}
+.book-close-btn svg { width: 16px; height: 16px; }
+.book-close-btn:hover { background: #B03020; transform: scale(1.12) rotate(90deg); }
+
+/* ── Perspectiva 3D ────────────────────────────────────────── */
+.book-body { perspective: 2600px; perspective-origin: 50% 42%; }
+
+/* ── Shell do livro ─────────────────────────────────────────
+   Estado inicial: largura de UMA pagina (livro fechado)
+   Estado aberto:  largura de DUAS paginas (livro aberto)
+   Background: mesma cor vermelha da capa (sem vazar marrom)
+─────────────────────────────────────────────────────────── */
+.book-shell {
+  position: relative;
+  /* Largura padrao = duas paginas (estado aberto) */
+  width: min(1080px, calc(100vw - 44px));
+  height: min(660px, calc(100vh - 140px));
+  border-radius: 6px 16px 16px 6px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.65), 0 0 0 3px rgba(255,255,255,0.07);
+  /* VERMELHO = mesma cor da capa, nao vaza marrom */
+  background: linear-gradient(
+    160deg,
+    #6B0F1A 0%, #8B1728 18%, #A31E30 35%,
+    #8B1728 60%, #7A0F1F 80%, #600A16 100%
+  );
+  overflow: hidden;
+  /* Transicao suave ao expandir */
+  transition:
+    width   0.65s cubic-bezier(0.645,0.045,0.355,1),
+    border-radius 0.65s cubic-bezier(0.645,0.045,0.355,1);
+}
+
+/* LIVRO FECHADO: uma pagina de largura */
+.book-shell.is-closed {
+  width: min(480px, calc(50vw - 30px));
+  border-radius: 8px 8px 8px 8px; /* mais simetrico, como capa fechada */
+}
+
+/* LIVRO ABERTO: duas paginas de largura */
+.book-shell.is-open {
+  width: min(1080px, calc(100vw - 44px));
+  border-radius: 6px 16px 16px 6px;
+}
+
+/* ── Cantos dourados ───────────────────────────────────────── */
+.book-corner {
+  position: absolute; width: 24px; height: 24px; z-index: 15;
+  background: linear-gradient(135deg,#D4A84B,#8B6A20);
+  box-shadow: 0 2px 7px rgba(0,0,0,0.45);
+}
+.book-corner.tl { top:-1px;    left:-1px;   border-radius:0 0 100% 0; }
+.book-corner.tr { top:-1px;    right:-1px;  border-radius:0 0 0 100%; }
+.book-corner.bl { bottom:-1px; left:-1px;   border-radius:0 100% 0 0; }
+.book-corner.br { bottom:-1px; right:-1px;  border-radius:100% 0 0 0; }
+
+/* ══════════════════════════════════════════════════════════
+   CAPA FECHADA
+══════════════════════════════════════════════════════════ */
+.book-cover-panel {
+  position: absolute; inset: 0;
+  z-index: 10;
+  border-radius: 4px 14px 14px 4px;
+  background: linear-gradient(
+    160deg,
+    #6B0F1A 0%, #8B1728 18%, #A31E30 35%,
+    #8B1728 60%, #7A0F1F 80%, #600A16 100%
+  );
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.38);
+  transform-style: preserve-3d;
+}
+
+/* Lombada esquerda da capa */
+.cover-spine {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 22px;
+  background: linear-gradient(to right, #3D0710 0%, #600A16 40%, #7A0F1F 100%);
+  box-shadow: inset -3px 0 8px rgba(0,0,0,0.3);
+  border-radius: 4px 0 0 4px;
+}
+
+/* Frame interno decorativo */
+.cover-inner-border {
+  position: relative;
+  margin: 20px 20px 20px 30px;
+  border: 2px solid rgba(210,170,80,0.5);
+  border-radius: 6px;
+  width: calc(100% - 50px);
+  height: calc(100% - 40px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; padding: 32px 24px;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.2);
+  background: linear-gradient(160deg,rgba(255,255,255,0.04),rgba(255,255,255,0));
+}
+.cover-inner-border::before {
+  content: ""; position: absolute; inset: 7px;
+  border: 1px solid rgba(210,170,80,0.22);
+  border-radius: 4px; pointer-events: none;
+}
+
+.cover-top-ornament,
+.cover-bottom-ornament {
+  font-size: 0.88rem; color: rgba(210,170,80,0.68); letter-spacing: 0.3em;
+}
+
+.cover-book-icon {
+  font-size: 3.2rem;
+  animation: cover-icon-float 4s ease-in-out infinite;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+}
+@keyframes cover-icon-float {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-8px) scale(1.05); }
+}
+
+.cover-main-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  color: #F5D78E; text-align: center; line-height: 1.15;
+  letter-spacing: 0.04em; margin: 0;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.5), 0 0 30px rgba(245,200,100,0.2);
+}
+
+.cover-sub-title {
+  font-family: var(--font-display); font-size: 0.82rem;
+  color: rgba(210,170,80,0.62); letter-spacing: 0.18em;
+  text-transform: uppercase; margin: 0;
+}
+
+.cover-divider {
+  width: 130px; height: 1px;
+  background: linear-gradient(to right, transparent, rgba(210,170,80,0.5), transparent);
+}
+
+/* Botao "Abrir o Livro" */
+.btn-open-cover {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg,#D4A84B 0%,#B8860B 50%,#D4A84B 100%);
+  border: 2px solid rgba(255,220,100,0.45);
+  border-radius: 50px; padding: 13px 30px;
+  font-family: var(--font-display); font-size: 1.05rem; color: #3D1A00;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,220,100,0.18);
+  transition: all 0.22s ease; cursor: pointer; margin-top: 6px;
+}
+.btn-open-cover svg { width: 19px; height: 19px; }
+.btn-open-cover:hover {
+  background: linear-gradient(135deg,#E8C060 0%,#C8960C 50%,#E8C060 100%);
+  transform: scale(1.07) translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.4), 0 0 22px rgba(210,170,80,0.3);
+}
+
+/* Animacao de ABRIR a capa (vira para esquerda, origem na lombada) */
+.book-cover-panel.is-opening {
+  animation: cover-flip-open 0.68s cubic-bezier(0.645,0.045,0.355,1) forwards;
+  transform-origin: left center;
+}
+@keyframes cover-flip-open {
+  0%   { transform: rotateY(0deg);    opacity: 1; }
+  48%  { transform: rotateY(-90deg);  opacity: 1; }
+  52%  { transform: rotateY(-90deg);  opacity: 0; }
+  100% { transform: rotateY(-180deg); opacity: 0; }
+}
+
+/* Capa escondida apos abertura */
+.book-cover-panel.is-open { display: none; }
+
+/* ══════════════════════════════════════════════════════════
+   PAGINAS ABERTAS
+══════════════════════════════════════════════════════════ */
+.book-pages-wrapper {
+  position: absolute; inset: 8px 10px 8px 18px;
+  display: flex; overflow: hidden; border-radius: 2px 10px 10px 2px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.book-pages-wrapper.is-visible {
+  opacity: 1; pointer-events: auto;
+}
+
+/* Pagina base */
+.book-page {
+  flex: 1; position: relative; overflow: hidden;
+  padding: 36px 34px 54px;
+  background: #FFF8EE;
+}
+.book-page.page-left  { background-color:#FFF5E8; box-shadow:inset -10px 0 20px rgba(0,0,0,.04); }
+.book-page.page-right { background-color:#FFF8EE; box-shadow:inset  10px 0 20px rgba(0,0,0,.035); }
+
+/* Lombada central */
+.book-center-spine { width:28px; flex-shrink:0; display:flex; position:relative; z-index:5; }
+.spine-shadow-left  { flex:1; background:linear-gradient(to right,rgba(0,0,0,.18),transparent); }
+.spine-line         { width:4px; background:linear-gradient(to bottom,#5C3520,#8B5C38 30%,#5C3520 60%,#8B5C38 80%,#5C3520); box-shadow:0 0 7px rgba(0,0,0,.4); }
+.spine-shadow-right { flex:1; background:linear-gradient(to left,rgba(0,0,0,.14),transparent); }
+
+/* ══════════════════════════════════════════════════════════
+   PAGE FLIPPER – animacao 3D limpa
+══════════════════════════════════════════════════════════ */
+.book-flipper {
+  position: absolute; top: 0; height: 100%; display: none;
+  transform-style: preserve-3d; z-index: 15; will-change: transform;
+}
+.flipper-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  overflow: hidden; padding: 36px 34px 54px;
+  background: #FFF8EE;
+}
+.flipper-back { transform: rotateY(180deg); background-color: #FFF5E8; }
+
+/* Gradiente lateral simulando curvatura da folha */
+.flipper-front::after, .flipper-back::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 36px;
+  pointer-events: none; z-index: 1;
+}
+.flipper-front::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(0,0,0,0.09), transparent);
+}
+.flipper-back::after {
+  left: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.09), transparent);
+}
+
+/* Keyframes de flip: easing suave, sem box-shadow */
+@keyframes flip-forward  { 0%{transform:rotateY(0deg)} 100%{transform:rotateY(-180deg)} }
+@keyframes flip-backward { 0%{transform:rotateY(0deg)} 100%{transform:rotateY(180deg)} }
+
+.book-flipper.flipping-forward  { animation: flip-forward  0.55s cubic-bezier(0.645,0.045,0.355,1) forwards; }
+.book-flipper.flipping-backward { animation: flip-backward 0.55s cubic-bezier(0.645,0.045,0.355,1) forwards; }
+
+/* ── Setas dentro do livro ────────────────────────────────── */
+.book-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 50px; height: 50px; border-radius: 50%;
+  background: rgba(80,35,18,0.80);
+  border: 2.5px solid rgba(255,248,238,0.42);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 20; color: #FFF8EE;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.38);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.book-arrow svg { width: 22px; height: 22px; }
+.book-arrow:hover:not(:disabled) {
+  background: rgba(163,30,48,0.90);
+  border-color: rgba(245,200,66,0.6);
+  transform: translateY(-50%) scale(1.1);
+}
+.book-arrow:disabled { opacity: 0.18; cursor: default; pointer-events: none; }
+.arrow-prev { left: 16px; }
+.arrow-next { right: 16px; }
+
+/* ── Dots no rodape do livro ──────────────────────────────── */
+.book-dots-bar {
+  position: absolute; bottom: 14px; left: 0; right: 0;
+  display: flex; justify-content: center; z-index: 12; pointer-events: none;
+}
+.book-dots {
+  display: flex; gap: 9px; align-items: center;
+  background: rgba(255,248,238,0.68);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  border-radius: 20px; padding: 5px 14px;
+  border: 1px solid rgba(139,94,60,0.16);
+  pointer-events: auto;
+}
+.book-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: rgba(139,94,60,0.24); border: 2px solid rgba(139,94,60,0.28);
+  transition: all 0.28s ease; cursor: pointer;
+}
+.book-dot.active {
+  background: #A31E30; border-color: #A31E30;
+  box-shadow: 0 0 7px rgba(163,30,48,0.45); transform: scale(1.3);
+}
+
+/* ══════════════════════════════════════════════════════════
+   CONTEUDO DAS PAGINAS (tamanho maior para o livro grande)
+══════════════════════════════════════════════════════════ */
+.pg-number {
+  position: absolute; bottom: 18px;
+  font-family: var(--font-display); font-size: 0.75rem;
+  color: rgba(139,94,60,0.38);
+}
+.pg-number.left  { left: 34px; }
+.pg-number.right { right: 34px; }
+
+.pg-title {
+  font-family: var(--font-display); font-size: 1.4rem; color: #5C3520;
+  margin-bottom: 18px; line-height: 1.2; position: relative; z-index: 1;
+}
+.pg-title .pg-emoji { display: block; font-size: 1.7rem; margin-bottom: 5px; }
+.pg-title::after {
+  content: ""; display: block; width: 52px; height: 3px;
+  background: linear-gradient(90deg,var(--yellow-gold),transparent);
+  border-radius: 2px; margin-top: 10px;
+}
+
+.pg-text { font-size: 0.92rem; font-weight: 600; color: #4A3020; line-height: 1.78; position: relative; z-index: 1; margin: 0; }
+
+/* Lira – Pagina 1 */
+.pg-lira-layout { display:flex; flex-direction:column; min-height:100%; padding-bottom: 24px; position:relative; z-index:1; }
+.pg-lira-top    { display:flex; align-items:flex-start; gap:18px; margin-bottom:16px; }
+
+.lira-illustration {
+  width: 130px; flex-shrink: 0;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,.22));
+  animation: lira-float 4.5s ease-in-out infinite;
+}
+.lira-img { width:100%; height:auto; display:block; }
+.lira-placeholder {
+  width:115px; height:140px;
+  background: linear-gradient(160deg,#2980b9,#1a6ea8);
+  border-radius: 40% 60% 60% 40%/50% 50% 60% 40%;
+  display: flex; align-items: center; justify-content: center; font-size: 3.2rem;
+}
+@keyframes lira-float { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-8px) rotate(1deg)} }
+
+.lira-speech {
+  flex:1; background:rgba(255,255,255,.9);
+  border: 2px solid rgba(245,200,66,.35);
+  border-radius: 16px; padding: 14px 18px;
+  font-size: 0.9rem; font-weight: 600; color: #3D2B1A; line-height: 1.62; position: relative;
+}
+.lira-speech::before {
+  content: ""; position: absolute; left: -13px; top: 26px;
+  border-top: 9px solid transparent; border-bottom: 9px solid transparent;
+  border-right: 13px solid rgba(255,255,255,.9);
+}
+.lira-speech-title { font-family:var(--font-display); font-size:0.98rem; color:#5C3520; display:block; margin-bottom:6px; }
+.pg-lira-body { flex:1; } /* Removido overflow: hidden para não cortar texto */
+.pg-welcome-badge {
+  display:inline-flex; align-items:center; gap:7px;
+  background:linear-gradient(135deg,var(--yellow-gold),#E8A030);
+  color:#fff; font-family:var(--font-display); font-size:0.76rem;
+  padding:4px 13px; border-radius:20px; margin-bottom:10px;
+  box-shadow:0 2px 8px rgba(245,200,66,.35);
+}
+
+/* Passos */
+.pg-steps { display:flex; flex-direction:column; gap:13px; position:relative; z-index:1; }
+.pg-step  { display:flex; align-items:flex-start; gap:13px; background:rgba(255,255,255,.68); border:1.5px solid rgba(139,94,60,.09); border-radius:12px; padding:12px 15px; }
+.pg-step-icon { font-size:1.5rem; flex-shrink:0; margin-top:1px; }
+.pg-step-text { font-size:0.88rem; font-weight:600; color:#4A3020; line-height:1.58; }
+.pg-step-text strong { color:#5C3520; font-weight:800; }
+
+.pg-highlight-box {
+  background:linear-gradient(135deg,rgba(245,200,66,.15),rgba(245,200,66,.04));
+  border:2px solid rgba(245,200,66,.3); border-radius:12px;
+  padding:13px 15px; margin-top:15px; font-size:0.88rem; font-weight:700;
+  color:#5C3A10; line-height:1.68; position:relative; z-index:1;
+}
+.pg-soon-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  background:rgba(109,191,103,.18); border:1.5px solid rgba(109,191,103,.38);
+  border-radius:20px; padding:3px 11px; font-size:0.72rem; font-weight:800;
+  color:#2D6B2A; margin-bottom:10px;
+}
+
+/* ── Mobile ─────────────────────────────────────────────── */
+@media (max-width:720px) {
+  /* Em mobile, livro reduzido para ter mais respiro nas margens */
+  .book-shell         { width:calc(100vw - 48px); height:calc(100vh - 200px); border-radius:12px; }
+  .book-shell.is-closed { width:calc(100vw - 48px); border-radius:12px; }
+  .book-shell.is-open   { width:calc(100vw - 48px); border-radius:12px; }
+  .book-pages-wrapper { inset:8px; border-radius:8px; }
+  .book-page.page-left, .book-center-spine { display:none; }
+  .book-page.page-right { border-radius:8px; }
+  .book-page, .flipper-face { padding:24px 22px 52px; }
+  .book-flipper { left:0!important; width:100%!important; }
+  .arrow-prev { left:8px; } .arrow-next { right:8px; }
+  .book-arrow { width:42px; height:42px; }
+  .cover-main-title { font-size:1.8rem; }
+  .lira-illustration { width:95px; }
+  .pg-title { font-size: 1.15rem; margin-bottom: 10px; line-height: 1.15; }
+  .pg-title .pg-emoji { font-size: 1.4rem; margin-bottom: 4px; }
+  .pg-title::after { margin-top: 6px; }
+  .pg-text { font-size: 0.85rem; line-height: 1.5; }
+  .pg-step { gap:10px; padding:10px 12px; }
+  .pg-step-icon { font-size:1.25rem; }
+  .pg-step-text { font-size:0.82rem; }
+  .pg-lira-layout { padding-bottom: 16px; }
+  .pg-lira-top { align-items:flex-start; gap:10px; margin-bottom:12px; flex-direction: row; }
+  .lira-speech { padding: 10px 12px; font-size: 0.8rem; line-height: 1.45; border-radius: 12px; }
+  .lira-speech-title { font-size: 0.88rem; margin-bottom: 2px; }
+  .lira-speech::before { left: -10px; top: 16px; border-width: 7px; border-right-width: 10px; }
+  .pg-welcome-badge { font-size: 0.7rem; padding: 4px 10px; margin-bottom: 6px; }
+  /* Páginas de categoria – mobile */
+  .pg-cat-layout { padding-bottom: 12px; }
+  .pg-cat-title { font-size: 1.15rem; margin-bottom: 10px; }
+  .pg-activity-grid { gap: 7px; }
+  .pg-activity-card { border-radius: 14px; min-height: 60px; }
+  .pg-ac-soon { font-size: 0.65rem; }
+}
+
+@media (max-width:440px) {
+  .cover-main-title { font-size:1.5rem; }
+  .btn-open-cover { font-size:0.9rem; padding:11px 22px; }
+  .book-arrow { width:36px; height:36px; }
+  .book-arrow svg { width:17px; height:17px; }
+}
+
+@media (orientation: landscape) and (max-height: 550px) {
+  .book-shell { 
+    height: calc(100vh - 20px); 
+    zoom: 0.8; /* Encolhe o livro inteiro para não cortar nada nas bordas */
+  }
+  .book-page, .flipper-face { 
+    padding: 14px 14px 20px; 
+    overflow-y: auto; 
+  }
+  
+  /* Lira Pagina 1 super compacta na horizontal */
+  .pg-lira-layout { padding-bottom: 10px; }
+  .pg-lira-top { flex-direction: row; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .lira-illustration { width: 60px; }
+  .lira-speech { padding: 6px 10px; font-size: 0.75rem; line-height: 1.3; border-radius: 10px; }
+  .lira-speech::before { left: -8px; top: 12px; border-width: 5px; border-right-width: 8px; }
+  .lira-speech-title { font-size: 0.8rem; margin-bottom: 2px; }
+  .pg-welcome-badge { font-size: 0.65rem; padding: 3px 8px; margin-bottom: 4px; }
+  
+  .pg-title { font-size: 1.05rem; margin-bottom: 6px; line-height: 1.1; }
+  .pg-title .pg-emoji { font-size: 1.2rem; margin-bottom: 2px; }
+  .pg-title::after { margin-top: 4px; }
+  
+  .pg-text { font-size: 0.75rem; line-height: 1.35; margin: 0; }
+  .pg-desc { font-size: 0.8rem; margin-bottom: 10px; }
+  .pg-cat-title { font-size: 1.0rem; margin-bottom: 10px; }
+  .pg-activity-grid { gap: 6px; }
+  .pg-activity-card { border-radius: 12px; min-height: 50px; }
+  .pg-ac-soon { font-size: 0.6rem; }
+  .pg-step { padding: 8px 10px; gap: 8px; }
+  .pg-step-icon { font-size: 1.1rem; }
+  .pg-step-text { font-size: 0.75rem; line-height: 1.3; }
+  .pg-highlight-box { padding: 8px 10px; font-size: 0.75rem; margin-top: 10px; }
+  
+  #btn-close-book {
+    top: -8px;
+    right: -8px;
+    width: 32px;
+    height: 32px;
+  }
+  .arrow-prev { left: 4px; }
+  .arrow-next { right: 4px; }
+  .book-arrow { width: 34px; height: 34px; }
+}

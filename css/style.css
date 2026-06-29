@@ -1,0 +1,2055 @@
+/* ═══════════════════════════════════════════════════════════
+   CADERNO DE DESCOBERTAS – Estilos Principais
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── TOKENS DE DESIGN ────────────────────────────────────── */
+@font-face {
+  font-family: 'Lexend';
+  src: url('../fonte/Lexend-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --sky-top: #87CEEB;
+  --sky-bottom: #C8E8F8;
+  --green-soft: #6DBF67;
+  --green-dark: #4A9944;
+  --yellow-gold: #F5C842;
+  --yellow-hover: #E8B520;
+  --brown-wood: #8B5E3C;
+  --brown-dark: #6B4226;
+  --cream: #FFF8EE;
+  --cream-dark: #F2E8D0;
+  --white-glass: rgba(255, 255, 255, 0.82);
+  --white-glass-2: rgba(255, 255, 255, 0.65);
+  --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.13);
+  --shadow-btn: 0 6px 20px rgba(0, 0, 0, 0.18);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.10);
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --font-main: 'Lexend', sans-serif;
+  --font-display: 'Lexend', sans-serif;
+  --transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fade: opacity 0.32s ease, transform 0.32s ease;
+}
+
+/* ── RESET ───────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-main);
+  font-size: 16px;
+  /* Cor de fundo igual ao céu cartoon — evita flash no carregamento */
+  background: linear-gradient(180deg, #4AB3E8 0%, #8DD5F4 40%, #C5E8F0 75%, #E8F5FA 100%);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+input {
+  font-family: inherit;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SPLINE – FUNDO 3D
+══════════════════════════════════════════════════════════ */
+#three-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  /* O spline-viewer PRECISA de pointer-events para inicializar e interagir */
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+
+#three-bg:active {
+  cursor: grabbing;
+}
+
+/* Quando um overlay está aberto, bloqueia interação com a cena */
+body.has-overlay #three-bg {
+  pointer-events: none;
+}
+
+#three-bg spline-viewer {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CÉU CARTOON – FUNDO SEMPRE VISÍVEL ATRÁS DO SPLINE
+══════════════════════════════════════════════════════════ */
+#sky-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  /* Gradiente de céu azul em camadas: azul intenso no topo, azul claro no meio,
+     quase branco-azulado no horizonte inferior — clássico estilo cartoon */
+  background: linear-gradient(180deg,
+      #4AB3E8 0%,
+      /* azul intenso - zênite */
+      #6EC6F0 18%,
+      /* azul médio */
+      #8DD5F4 38%,
+      /* azul suave */
+      #AADDEE 58%,
+      /* azul pálido */
+      #C5E8F0 75%,
+      /* quase branco-azulado */
+      #D8EFF5 90%,
+      /* horizonte claro */
+      #E8F5FA 100%
+      /* base bem clara */
+    );
+}
+
+/* Luz solar difusa no canto superior direito */
+#sky-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 45% at 85% 5%, rgba(255, 245, 180, 0.30) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 15% 8%, rgba(255, 255, 255, 0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* ── NUVEM SVG – BASE ───────────────────────────────────── */
+.cloud {
+  position: absolute;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* ── NUVENS INDIVIDUAIS – POSIÇÃO E TAMANHO ─────────────── */
+
+/* Nuvem A – grande, topo esquerdo */
+.cloud-a {
+  width: 300px;
+  top: 4%;
+  left: -2%;
+  opacity: 0.97;
+  animation: drift-a 28s ease-in-out infinite alternate;
+}
+
+/* Nuvem B – grande, topo direito */
+.cloud-b {
+  width: 340px;
+  top: 2%;
+  right: -2%;
+  opacity: 0.95;
+  animation: drift-b 35s ease-in-out infinite alternate;
+}
+
+/* Nuvem C – média, topo centro-esquerda */
+.cloud-c {
+  width: 210px;
+  top: 13%;
+  left: 22%;
+  opacity: 0.85;
+  animation: drift-a 22s ease-in-out infinite alternate-reverse;
+}
+
+/* Nuvem D – média, topo centro-direita */
+.cloud-d {
+  width: 240px;
+  top: 8%;
+  right: 26%;
+  opacity: 0.88;
+  animation: drift-b 30s ease-in-out infinite alternate;
+}
+
+/* Nuvem E – pequena, esquerda baixa */
+.cloud-e {
+  width: 155px;
+  top: 22%;
+  left: 5%;
+  opacity: 0.65;
+  animation: drift-a 18s ease-in-out infinite alternate;
+}
+
+/* Nuvem F – pequena, direita baixa */
+.cloud-f {
+  width: 170px;
+  top: 19%;
+  right: 8%;
+  opacity: 0.68;
+  animation: drift-b 24s ease-in-out infinite alternate-reverse;
+}
+
+/* ── ANIMAÇÕES DE DERIVA ────────────────────────────────── */
+@keyframes drift-a {
+  0% {
+    transform: translateX(0px) translateY(0px);
+  }
+
+  33% {
+    transform: translateX(22px) translateY(-6px);
+  }
+
+  66% {
+    transform: translateX(8px) translateY(4px);
+  }
+
+  100% {
+    transform: translateX(30px) translateY(-3px);
+  }
+}
+
+@keyframes drift-b {
+  0% {
+    transform: translateX(0px) translateY(0px);
+  }
+
+  33% {
+    transform: translateX(-18px) translateY(5px);
+  }
+
+  66% {
+    transform: translateX(-30px) translateY(-4px);
+  }
+
+  100% {
+    transform: translateX(-12px) translateY(6px);
+  }
+}
+
+/* ── BRILHO SUAVE DO CÉU (pulsação lenta) ──────────────── */
+@keyframes sky-pulse {
+  0% {
+    filter: brightness(1);
+  }
+
+  100% {
+    filter: brightness(1.04);
+  }
+}
+
+#sky-bg {
+  animation: sky-pulse 12s ease-in-out infinite alternate;
+}
+
+/* ══════════════════════════════════════════════════════════
+   UI OVERLAY – CAMADA DE INTERFACE
+══════════════════════════════════════════════════════════ */
+#ui-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  /* só filhos com pointer-events:auto são clicáveis */
+  display: grid;
+  grid-template-areas:
+    "header   header"
+    "nina     ."
+    ".        ."
+    "keyword  buttons"
+    "dicas    buttons";
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr auto auto auto;
+  padding: 20px 24px 28px 24px;
+  gap: 12px;
+}
+
+/* ── HEADER ───────────────────────────────────────────────── */
+#header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: auto;
+}
+
+/* Logo */
+#logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--white-glass);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  border-radius: var(--radius-lg);
+  padding: 10px 18px;
+  box-shadow: var(--shadow-soft);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+#logo-area:hover {
+  transform: scale(1.02);
+}
+
+.logo-icon {
+  font-size: 1.4rem;
+  color: var(--yellow-gold);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.logo-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: #2C5F8A;
+  letter-spacing: 0.01em;
+}
+
+.logo-highlight {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--yellow-gold);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  letter-spacing: 0.01em;
+}
+
+/* Header controls */
+#header-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.control-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--white-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-soft);
+  color: #2C5F8A;
+  transition: var(--transition);
+}
+
+.control-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Ícone SVG externo nos botões de controle */
+.control-icon {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Som desativado – fica semi-transparente */
+.icon-muted {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.control-btn:hover {
+  transform: scale(1.12) rotate(-5deg);
+  background: var(--yellow-gold);
+  color: white;
+  border-color: var(--yellow-gold);
+}
+
+.control-btn.muted {
+  background: rgba(200, 200, 200, 0.7);
+  color: #888;
+}
+
+/* ── NINA – PERSONAGEM GUIA ──────────────────────────────── */
+#nina-area {
+  grid-area: nina;
+  /* Linha horizontal: Nina à esquerda, balão à direita */
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  /* alinha pela base */
+  justify-content: flex-start;
+  gap: 0;
+  /* balão encosta na Nina */
+  pointer-events: none;
+  position: relative;
+  align-self: end;
+}
+
+.nina-character {
+  width: 130px;
+  /* menor: foco fica na ilha */
+  flex-shrink: 0;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.22));
+  animation: nina-float 4s ease-in-out infinite;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+}
+
+.nina-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Placeholder quando não tem imagem */
+.nina-placeholder {
+  width: 110px;
+  height: 140px;
+  background: linear-gradient(160deg, #C8A96E, #A67B5B);
+  border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+  border: 3px solid var(--brown-wood);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-soft);
+}
+
+.nina-placeholder::after {
+  content: "🐹";
+  font-size: 3rem;
+}
+
+/* ── BALÃO DE FALA ─────────────────────────────────────────
+   Sai do lado direito da Nina, seta aponta para a esquerda
+   (em direção à Nina)
+──────────────────────────────────────────────────────────── */
+.speech-bubble {
+  background: var(--white-glass);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border: 2.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-xl);
+  padding: 12px 16px;
+  max-width: 210px;
+  min-width: 170px;
+  box-shadow: var(--shadow-soft);
+  position: relative;
+  /* Sobe o balão para ficar na altura do topo da Nina */
+  margin-bottom: 28px;
+  margin-left: 0;
+  pointer-events: none;
+  animation: bubble-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 0.8s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+/* Seta saindo para a esquerda (aponta para Nina) */
+.speech-bubble::before {
+  content: "";
+  position: absolute;
+  left: -13px;
+  /* sai pela lateral esquerda do balão */
+  bottom: 18px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 13px solid rgba(255, 255, 255, 0.95);
+}
+
+/* Segunda camada da seta para simular borda */
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  left: -17px;
+  bottom: 15px;
+  width: 0;
+  height: 0;
+  border-top: 11px solid transparent;
+  border-bottom: 11px solid transparent;
+  border-right: 15px solid rgba(255, 255, 255, 0.85);
+  z-index: -1;
+}
+
+#nina-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #2C4A6E;
+  line-height: 1.5;
+  text-align: left;
+}
+
+/* ── CAMPO DE PALAVRA-CHAVE ─────────────────────────────── */
+#keyword-area {
+  grid-area: keyword;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: end;
+  justify-self: start;
+  pointer-events: auto;
+}
+
+/* Form é uma pílula única com ícone + input + botão em linha */
+#keyword-form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  /* todos filhos alinhados ao centro vertical */
+  gap: 0;
+  background: var(--white-glass);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border: 2.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 50px;
+  padding: 6px 6px 6px 14px;
+  /* padding interno da pílula */
+  box-shadow: var(--shadow-soft);
+  width: 320px;
+  max-width: 100%;
+  height: 52px;
+  /* altura fixa garante alinhamento */
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+#keyword-form:focus-within {
+  box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.5), var(--shadow-soft);
+  border-color: var(--yellow-gold);
+}
+
+.keyword-icon {
+  width: 17px;
+  height: 17px;
+  color: #8BB8D4;
+  flex-shrink: 0;
+  margin-right: 8px;
+  /* garante alinhamento vertical mesmo sem wrapper */
+  display: block;
+  align-self: center;
+}
+
+.keyword-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2C4A6E;
+  outline: none;
+  min-width: 0;
+  height: 100%;
+  /* ocupa toda a altura da pílula */
+  align-self: center;
+  line-height: 1;
+}
+
+.keyword-input::placeholder {
+  color: #A8C4D8;
+  font-weight: 600;
+}
+
+/* Botão: círculo dourado encostado no lado direito da pílula */
+.btn-unlock {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--yellow-gold);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
+  /* alinha verticalmente no centro */
+  margin-left: 6px;
+  transition: var(--transition);
+  box-shadow: 0 3px 10px rgba(245, 200, 66, 0.4);
+}
+
+.btn-unlock svg {
+  width: 18px;
+  height: 18px;
+  stroke: white;
+}
+
+.btn-unlock:hover {
+  transform: scale(1.12);
+  background: var(--yellow-hover);
+  box-shadow: 0 5px 15px rgba(245, 200, 66, 0.6);
+}
+
+.keyword-feedback {
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0 8px;
+  min-height: 20px;
+  transition: opacity 0.3s ease;
+}
+
+.keyword-feedback.success {
+  color: #2DB54A;
+}
+
+.keyword-feedback.error {
+  color: #E05050;
+}
+
+/* ── BOTÕES PRINCIPAIS ──────────────────────────────────── */
+#main-buttons {
+  grid-area: buttons;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: flex-end;
+  align-self: end;
+  pointer-events: auto;
+}
+
+.main-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  box-shadow: var(--shadow-btn);
+  transition: var(--transition);
+  border: 3px solid transparent;
+  min-width: 240px;
+  justify-content: flex-start;
+  white-space: nowrap;
+}
+
+.btn-icon {
+  font-size: 1.35rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+/* Ícone SVG externo nos botões principais */
+.btn-svg-icon {
+  width: 2.3rem;
+  height: 2.3rem;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.btn-label {
+  flex: 1;
+}
+
+/* Botão Primário – Atividades */
+.btn-primary {
+  background: linear-gradient(135deg, var(--brown-wood) 0%, var(--brown-dark) 100%);
+  color: #FFF8EE;
+  border-color: rgba(255, 255, 255, 0.25);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 10px 30px rgba(139, 94, 60, 0.5);
+  background: linear-gradient(135deg, #A06B44, #7A4A28);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Botão Secundário – Distintivos */
+.btn-secondary {
+  background: linear-gradient(135deg, #D4892A 0%, #B5701A 100%);
+  color: #FFF8EE;
+  border-color: rgba(255, 255, 255, 0.25);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 10px 30px rgba(212, 137, 42, 0.5);
+  background: linear-gradient(135deg, #E89B38, #C47F28);
+}
+
+.btn-secondary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ── BOTÃO DICAS ─────────────────────────────────────────── */
+#btn-dicas {
+  grid-area: dicas;
+  align-self: end;
+  justify-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: var(--white-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #2C5F8A;
+  box-shadow: var(--shadow-card);
+  pointer-events: auto;
+  transition: var(--transition);
+}
+
+#btn-dicas span:first-child {
+  font-size: 1.1rem;
+}
+
+#btn-dicas:hover {
+  transform: scale(1.08);
+  background: var(--yellow-gold);
+  color: white;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   ANIMAÇÕES
+══════════════════════════════════════════════════════════ */
+@keyframes nina-float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes bubble-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  70% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes toast-slide {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Entrada dos elementos da UI */
+#logo-area {
+  animation: fade-in-up 0.5s ease 0.1s both;
+}
+
+#header-controls {
+  animation: fade-in-up 0.5s ease 0.2s both;
+}
+
+#nina-area {
+  animation: fade-in-up 0.6s ease 0.3s both;
+}
+
+#keyword-area {
+  animation: fade-in-up 0.5s ease 0.5s both;
+}
+
+#main-buttons {
+  animation: fade-in-up 0.5s ease 0.6s both;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   OVERLAYS
+══════════════════════════════════════════════════════════ */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 30, 60, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fade-in-up 0.25s ease both;
+}
+
+.overlay-panel {
+  position: relative;
+  z-index: 1;
+  animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.overlay-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  color: #555;
+  line-height: 1;
+}
+
+.overlay-close:hover {
+  background: #E05050;
+  color: white;
+  border-color: #E05050;
+  transform: scale(1.1) rotate(90deg);
+}
+
+/* ── CADERNO DE ATIVIDADES ──────────────────────────────── */
+.caderno-panel {
+  background: var(--cream);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  width: 100%;
+  max-width: 900px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+}
+
+.caderno-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, var(--brown-wood) 0%, var(--brown-dark) 100%);
+  color: var(--cream);
+}
+
+.caderno-icon {
+  font-size: 1.6rem;
+}
+
+.caderno-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  flex: 1;
+  color: var(--cream);
+}
+
+.caderno-pages {
+  display: flex;
+  min-height: 420px;
+}
+
+.caderno-page {
+  flex: 1;
+  padding: 28px 28px 24px;
+  position: relative;
+}
+
+.page-lines {
+  position: absolute;
+  inset: 60px 28px 24px;
+  background-image: repeating-linear-gradient(to bottom,
+      transparent 0px,
+      transparent 31px,
+      rgba(139, 94, 60, 0.10) 31px,
+      rgba(139, 94, 60, 0.10) 32px);
+  pointer-events: none;
+}
+
+.page-left {
+  background: var(--cream);
+}
+
+.page-right {
+  background: #FFF5E8;
+}
+
+.page-spine {
+  width: 20px;
+  background: linear-gradient(90deg, rgba(139, 94, 60, 0.2) 0%, rgba(139, 94, 60, 0.08) 50%, rgba(139, 94, 60, 0.2) 100%);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.page-spine::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  background: rgba(139, 94, 60, 0.25);
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--brown-dark);
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.page-subtitle {
+  font-size: 0.82rem;
+  color: #8B7355;
+  margin-bottom: 20px;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+
+/* Activities list */
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.activity-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 2px solid rgba(139, 94, 60, 0.15);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  transition: all 0.2s ease;
+}
+
+.activity-card:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--yellow-gold);
+  transform: translateX(4px);
+}
+
+.activity-card.unlocked {
+  border-color: rgba(45, 181, 74, 0.4);
+  background: rgba(230, 255, 235, 0.6);
+}
+
+.activity-badge-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.activity-info {
+  flex: 1;
+}
+
+.activity-info strong {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #3D2B1A;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.activity-info p {
+  font-size: 0.78rem;
+  color: #7A5C3A;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.activity-tag {
+  display: inline-block;
+  background: rgba(245, 200, 66, 0.3);
+  border: 1px solid rgba(245, 200, 66, 0.5);
+  color: #8B6A10;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.activity-lock {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.unlocked-icon {
+  font-size: 1.2rem;
+}
+
+/* How to steps */
+.how-to-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--yellow-gold), var(--yellow-hover));
+  color: white;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(245, 200, 66, 0.4);
+}
+
+.step p {
+  font-size: 0.85rem;
+  color: #4A3020;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+/* Nina tip no caderno */
+.caderno-nina-tip {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.tip-nina {
+  width: 60px;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.15));
+}
+
+.tip-bubble {
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid rgba(245, 200, 66, 0.4);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #4A3020;
+  line-height: 1.4;
+}
+
+/* ── MURAL DE MADEIRA (DISTINTIVOS) ─────────────────────────── */
+.board-modal-overlay {
+  perspective: 1600px;
+}
+
+.board-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 12, 28, 0.48);
+  backdrop-filter: blur(8px) saturate(0.8);
+  -webkit-backdrop-filter: blur(8px) saturate(0.8);
+  animation: backdrop-in 0.3s ease both;
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.board-modal {
+  position: relative;
+  z-index: 10;
+  width: 90%;
+  max-width: 680px;
+  animation: board-open-in 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes board-open-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(28px) rotateX(8deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotateX(0deg);
+  }
+}
+
+/* Botão Fechar no estilo prego/plaquinha */
+.board-close-btn {
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #E05050;
+  border: 3px solid #FFFDF5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  z-index: 30;
+  transition: all 0.22s ease;
+}
+
+.board-close-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.board-close-btn:hover {
+  background: #C0392B;
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.board-body.signpost-style {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+}
+
+/* Vertical Posts */
+.signpost-posts {
+  position: absolute;
+  top: -20px;
+  bottom: -40px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 40px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .signpost-posts {
+    padding: 0 20px;
+  }
+}
+
+.signpost-post {
+  width: 40px;
+  background: linear-gradient(90deg, #3A2010, #5A3515 30%, #4A2B15 80%, #2D1808);
+  border-radius: 20px;
+  box-shadow: inset 2px 0 5px rgba(255, 255, 255, 0.05), inset -4px 0 8px rgba(0, 0, 0, 0.6);
+}
+
+/* Planks */
+.signpost-plank {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #C2865E, #A06B44 40%, #7A4A28);
+  border-radius: 20px;
+  box-shadow:
+    inset 0 4px 6px rgba(255, 255, 255, 0.25),
+    inset 0 -6px 8px rgba(0, 0, 0, 0.35),
+    0 16px 24px rgba(0, 0, 0, 0.5);
+  padding: 12px 24px;
+  width: 95%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wood grain */
+.signpost-plank::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: repeating-linear-gradient(2deg,
+      rgba(0, 0, 0, 0.04) 0px,
+      rgba(0, 0, 0, 0.04) 2px,
+      transparent 2px,
+      transparent 12px);
+  pointer-events: none;
+}
+
+/* Cuts/cracks in wood */
+.signpost-plank::before {
+  content: "";
+  position: absolute;
+  top: 35%;
+  left: 10%;
+  right: 25%;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+  box-shadow: 0 35px 0 -1px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+/* Nails */
+.plank-nails {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  justify-content: space-between;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.nail {
+  width: 16px;
+  height: 16px;
+  background: #222;
+  border-radius: 50%;
+  box-shadow: inset -2px -2px 4px rgba(0, 0, 0, 0.9), inset 2px 2px 4px rgba(255, 255, 255, 0.4), 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Specific Planks */
+.plank-title {
+  transform: rotate(-1deg);
+  width: 80%;
+  padding: 12px 20px 8px;
+  z-index: 4;
+}
+
+.plank-row-0 {
+  transform: rotate(0.8deg) translateX(-2px);
+  z-index: 3;
+}
+
+.plank-row-1 {
+  transform: rotate(-0.5deg) translateX(3px);
+  z-index: 2;
+}
+
+.plank-footer {
+  transform: rotate(1deg);
+  width: 85%;
+  z-index: 1;
+  padding: 10px 20px;
+}
+
+/* Navigation buttons */
+.board-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: #FFFDF5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.board-nav-btn:hover {
+  background: var(--yellow-gold);
+  border-color: var(--yellow-hover);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.nav-prev {
+  left: -20px;
+}
+
+.nav-next {
+  right: -20px;
+}
+
+@media (max-width: 640px) {
+  .nav-prev {
+    left: -10px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .nav-next {
+    right: -10px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Texts inside planks */
+.board-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.board-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
+}
+
+.board-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: #FFFDF5;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.board-subtitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #FFECC8;
+  text-align: center;
+  margin-top: 4px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 2;
+}
+
+/* Badges Container */
+.signpost-badges-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  align-items: center;
+}
+
+.badges-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  position: relative;
+  z-index: 3;
+  padding: 10px 0;
+}
+
+/* Badge Items */
+.badge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 90px;
+  position: relative;
+  transition: var(--transition);
+}
+
+.badge-item.unlocked {
+  background: linear-gradient(135deg, #FAD6A5, #D4A373);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  justify-content: center;
+  box-shadow:
+    inset 0 3px 5px rgba(255, 255, 255, 0.6),
+    inset 0 -4px 6px rgba(0, 0, 0, 0.3),
+    0 6px 12px rgba(0, 0, 0, 0.4);
+  border: 3px solid #8B5E3C;
+}
+
+.badge-item::before {
+  display: none;
+}
+
+.badge-item.unlocked .badge-emoji {
+  font-size: 2.2rem;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+.badge-item.unlocked .badge-name {
+  position: absolute;
+  bottom: -24px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #FFFDF5;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+}
+
+.badge-item.unlocked:hover {
+  transform: scale(1.1) rotate(5deg);
+  z-index: 5;
+}
+
+.badge-item.locked {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  justify-content: center;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.badge-item.locked .badge-locked-icon {
+  font-size: 1.8rem;
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.badge-item.locked .badge-locked-name {
+  position: absolute;
+  bottom: -24px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+}
+
+/* Footer area */
+.board-footer {
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.progress-info {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #FFFDF5;
+  text-align: center;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.progress-bar-wrap {
+  width: 100%;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-soft), var(--yellow-gold));
+  border-radius: 20px;
+  width: 0%;
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════════ */
+.toast {
+  position: fixed;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: linear-gradient(135deg, #2C5F2E, #3D8A3F);
+  color: white;
+  font-family: var(--font-main);
+  font-weight: 800;
+  font-size: 0.92rem;
+  padding: 14px 24px;
+  border-radius: 50px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  z-index: 500;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  white-space: nowrap;
+  max-width: calc(100vw - 40px);
+  text-align: center;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  animation: toast-slide 0.35s ease both;
+}
+
+.toast.error {
+  background: linear-gradient(135deg, #C0392B, #E05050);
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVIDADE – TABLET
+══════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  #ui-overlay {
+    grid-template-areas:
+      "header   header"
+      "nina     ."
+      ".        ."
+      "keyword  buttons"
+      "dicas    buttons";
+    padding: 16px 18px 22px 18px;
+  }
+
+  .main-btn {
+    min-width: 200px;
+    font-size: 1rem;
+    padding: 12px 22px;
+  }
+
+  .nina-character {
+    width: 160px;
+  }
+
+  .caderno-pages {
+    flex-direction: column;
+  }
+
+  .page-spine {
+    width: 100%;
+    height: 16px;
+  }
+
+  .page-spine::before {
+    width: 100%;
+    height: 3px;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+  }
+
+  /* .badges-grid removido do tablet */
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVIDADE – MOBILE
+══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  #ui-overlay {
+    grid-template-areas:
+      "header"
+      "."
+      "."
+      "keyword"
+      "nina-mobile"
+      "buttons";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto auto auto;
+    padding: 14px 14px 20px;
+    gap: 10px;
+  }
+
+  /* Nina vira uma versão compacta no mobile */
+  #nina-area {
+    grid-area: nina-mobile;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .nina-character {
+    width: 80px;
+    animation: none;
+    flex-shrink: 0;
+  }
+
+  .speech-bubble {
+    max-width: 100%;
+    margin-left: 0;
+    animation: none;
+    opacity: 1;
+    padding: 10px 14px;
+  }
+
+  .speech-bubble::before {
+    display: none;
+  }
+
+  #nina-text {
+    font-size: 0.8rem;
+  }
+
+  /* Botões no mobile ficam centralizados e menores */
+  #main-buttons {
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .main-btn {
+    min-width: 0;
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .btn-icon {
+    font-size: 1.1rem;
+  }
+
+  /* Campo de keyword ocupa toda a largura */
+  #keyword-area {
+    width: 100%;
+  }
+
+  #keyword-form {
+    width: 100%;
+  }
+
+  /* Esconde dicas no mobile */
+  #btn-dicas {
+    display: none;
+  }
+
+  /* Logo menor */
+  .logo-title {
+    font-size: 0.85rem;
+  }
+
+  .logo-highlight {
+    font-size: 1rem;
+  }
+
+  #logo-area {
+    padding: 8px 14px;
+    gap: 7px;
+  }
+
+  /* Overlays em tela cheia no mobile */
+  .overlay {
+    padding: 0;
+  }
+
+  .overlay-panel {
+    border-radius: 0;
+    max-height: 100vh;
+    width: 100%;
+  }
+
+  .caderno-panel {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  /* Estilos antigos da moldura de madeira removidos */
+  .board-title {
+    font-size: 1.5rem;
+  }
+
+  .board-icon {
+    font-size: 1.6rem;
+  }
+
+  /* .badges-grid removido do mobile */
+
+  .caderno-pages {
+    flex-direction: column;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   SCROLLBAR CUSTOMIZADA (OVERLAYS)
+══════════════════════════════════════════════════════════ */
+.overlay-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overlay-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overlay-panel::-webkit-scrollbar-thumb {
+  background: rgba(139, 94, 60, 0.3);
+  border-radius: 3px;
+}
+
+.overlay-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 94, 60, 0.5);
+}
+
+/* ══════════════════════════════════════════════════════════
+   ACESSIBILIDADE – FOCO VISÍVEL
+══════════════════════════════════════════════════════════ */
+:focus-visible {
+  outline: 3px solid var(--yellow-gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   ANIMAÇÃO SHAKE – ERRO NO FORMULÁRIO
+══════════════════════════════════════════════════════════ */
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  15% {
+    transform: translateX(-8px);
+  }
+
+  30% {
+    transform: translateX(8px);
+  }
+
+  45% {
+    transform: translateX(-6px);
+  }
+
+  60% {
+    transform: translateX(6px);
+  }
+
+  75% {
+    transform: translateX(-3px);
+  }
+
+  90% {
+    transform: translateX(3px);
+  }
+}
+
+.shake {
+  animation: shake 0.5s ease both;
+}
+
+/* ══════════════════════════════════════════════════════════
+   ESTADO: overlay aberto
+══════════════════════════════════════════════════════════ */
+body.has-overlay {
+  overflow: hidden;
+}
+
+/* Quando overlay está aberto, Spline não recebe eventos */
+body.has-overlay #three-bg {
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════════
+   LOADING SPLINE – indicador visual
+══════════════════════════════════════════════════════════ */
+#three-bg spline-viewer::part(loading) {
+  background: transparent;
+}
+
+/* === THREE.JS CANVAS OVERLAY === */
+#three-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Fica acima do Spline, mas atrs da UI */
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIVRO – PÁGINAS TEMÁTICAS (layout novo – referência imagem)
+═══════════════════════════════════════════════════════════ */
+
+/* Container de cada página categórica */
+.pg-cat-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 28px;
+}
+
+/* Título grande no topo em Lexend uppercase */
+.pg-cat-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.4rem, 3.2vw, 2.2rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* Cores do título por categoria – respeitam o design system */
+.pg-cat-alimentacao .pg-cat-title { color: #C87820; }
+.pg-cat-saude       .pg-cat-title { color: #2D8A4E; }
+.pg-cat-criatividade .pg-cat-title { color: #7C3AED; }
+.pg-cat-artes        .pg-cat-title { color: #C2185B; }
+.pg-cat-arlivre      .pg-cat-title { color: #1B6B3A; }
+
+/* Grade 2×3 de quadrinhos de atividade */
+.pg-activity-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 10px;
+  flex: 1;
+}
+
+/* Quadrinho individual – grande, escuro, bem arredondado */
+.pg-activity-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: #2C1A0E;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+  min-height: 80px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  cursor: default;
+  overflow: hidden;
+}
+
+/* Leve brilho interno nos cards escuros */
+.pg-activity-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.pg-activity-card:hover {
+  transform: translateY(-3px) scale(1.015);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.38);
+}
+
+/* Texto "Em breve" centralizado, branco */
+.pg-ac-soon {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.70);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RECOMPENSA DE BRILHO – Partículas ao crescimento da árvore
+═══════════════════════════════════════════════════════════ */
+
+@keyframes sparkle-fly {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(0px, 0px) scale(0.4);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(1.1);
+  }
+}
+
+@keyframes sparkle-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(8);
+    opacity: 0;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   AJUSTES RESPONSIVOS PARA HORIZONTAL / TELAS BAIXAS
+   (Celulares deitados com max-height pequeno)
+═══════════════════════════════════════════════════════════ */
+@media (orientation: landscape) and (max-height: 550px) {
+  #ui-overlay {
+    /* Mantém o layout parecido com desktop mas super espremido */
+    padding: 8px 12px 12px 12px;
+    gap: 4px;
+    grid-template-areas:
+      "header   header"
+      "nina     ."
+      ".        ."
+      "keyword  buttons"
+      "dicas    buttons";
+  }
+
+  /* Reduz o topo */
+  #logo-area {
+    padding: 4px 10px;
+  }
+
+  .logo-title {
+    font-size: 0.75rem;
+  }
+
+  .logo-highlight {
+    font-size: 0.9rem;
+  }
+
+  .control-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  /* Reduz Nina absurdamente para não tampar nada */
+  .nina-character {
+    width: 60px;
+    /* Bem menor */
+  }
+
+  .speech-bubble {
+    padding: 8px 12px;
+    margin-bottom: 20px;
+  }
+
+  #nina-text {
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+
+  /* Reduz a caixa de escrever a palavra */
+  #keyword-form {
+    height: 40px;
+    padding: 4px 4px 4px 10px;
+    width: 250px;
+  }
+
+  .keyword-input {
+    font-size: 0.85rem;
+  }
+
+  .btn-unlock {
+    width: 32px;
+    height: 32px;
+  }
+
+  .keyword-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  #keyword-feedback {
+    font-size: 0.7rem;
+    margin-top: 2px;
+  }
+
+  /* Reduz botões principais para caberem sem empurrar para fora */
+  #main-buttons {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .main-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    gap: 6px;
+    border-radius: 20px;
+  }
+
+  .btn-icon {
+    font-size: 1rem;
+  }
+
+  /* ── Modal de Distintivos (Escala em vez de Scroll) ── */
+  @keyframes board-landscape-in {
+    0% { opacity: 0; transform: scale(0.5) translateY(28px) rotateX(8deg); }
+    100% { opacity: 1; transform: scale(0.65) translateY(0) rotateX(0deg); }
+  }
+  
+  .board-modal {
+    animation: board-landscape-in 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  }
+}

@@ -1,0 +1,1041 @@
+/* ═══════════════════════════════════════════════════════════
+   CADERNO DE DESCOBERTAS – Script Principal
+   ═══════════════════════════════════════════════════════════
+
+   CONFIGURAÇÃO DA CENA SPLINE
+   ─────────────────────────────────────────────────────────
+   Para usar a cena LOCAL (.splinecode) da pasta do projeto,
+   o arquivo já está configurado em index.html como:
+     url="./scene (1).splinecode"
+
+   Se quiser trocar para a URL online exportada pelo Spline,
+   edite o atributo 'url' do <spline-viewer> no index.html
+   ou use a constante abaixo para controle dinâmico:
+*/
+const SPLINE_SCENE_URL = "https://prod.spline.design/KBrLJcFhRZSzrpmw/scene.splinecode";
+
+/* ═══════════════════════════════════════════════════════════
+   BANCO DE PALAVRAS-CHAVE E DISTINTIVOS
+   ─────────────────────────────────────────────────────────
+   Adicione novas palavras-chave aqui com o badgeId correspondente.
+   O badge será desbloqueado quando a família inserir essa palavra.
+═══════════════════════════════════════════════════════════ */
+const KEYWORDS_MAP = {
+  "natureza":   "badge_natureza",
+  "agua":       "badge_agua",
+  "estrelas":   "badge_estrelas",
+  "explorador": "badge_explorador",
+  "familia":    "badge_familia",
+  "descoberta": "badge_descoberta",
+};
+
+/* ═══════════════════════════════════════════════════════════
+   DEFINIÇÃO DOS DISTINTIVOS
+═══════════════════════════════════════════════════════════ */
+const BADGES_DATA = [
+  {
+    id: "badge_natureza",
+    name: "Guardião da Natureza",
+    emoji: "🌱",
+    description: "Explorou a trilha da natureza!",
+  },
+  {
+    id: "badge_agua",
+    name: "Mestre das Águas",
+    emoji: "💧",
+    description: "Dominou o experimento da água!",
+  },
+  {
+    id: "badge_estrelas",
+    name: "Astrônomo Mirim",
+    emoji: "⭐",
+    description: "Mapeou as estrelas do céu!",
+  },
+  {
+    id: "badge_explorador",
+    name: "Grande Explorador",
+    emoji: "🧭",
+    description: "Corajoso e curioso!",
+  },
+  {
+    id: "badge_familia",
+    name: "Família Unida",
+    emoji: "👨‍👩‍👧",
+    description: "Explorou junto com a família!",
+  },
+  {
+    id: "badge_descoberta",
+    name: "Espírito Descobridor",
+    emoji: "🔍",
+    description: "Encontrou todos os segredos!",
+  },
+  {
+    id: "badge_arte",
+    name: "Pequeno Artista",
+    emoji: "🎨",
+    description: "Criou uma obra prima em família!",
+  },
+  {
+    id: "badge_musica",
+    name: "Mestre Musical",
+    emoji: "🎵",
+    description: "Tocou ou cantou sua primeira música!",
+  },
+  {
+    id: "badge_culinaria",
+    name: "Chef de Cozinha",
+    emoji: "🍳",
+    description: "Ajudou a preparar uma refeição deliciosa!",
+  },
+  {
+    id: "badge_jardim",
+    name: "Dedos Verdes",
+    emoji: "🌻",
+    description: "Plantou uma sementinha ou cuidou de uma planta!",
+  },
+  {
+    id: "badge_fotografia",
+    name: "Olhar Atento",
+    emoji: "📸",
+    description: "Capturou um momento especial da família!",
+  },
+  {
+    id: "badge_leitura",
+    name: "Traça de Livros",
+    emoji: "📚",
+    description: "Leu uma nova história fantástica juntos!",
+  },
+];
+
+const BADGES_PER_PAGE = 6;
+let currentBadgePage = 0;
+
+function nextBadgePage() {
+  const totalPages = Math.ceil(BADGES_DATA.length / BADGES_PER_PAGE);
+  if (currentBadgePage < totalPages - 1) {
+    currentBadgePage++;
+    renderBadgesGrid();
+  }
+}
+
+function prevBadgePage() {
+  if (currentBadgePage > 0) {
+    currentBadgePage--;
+    renderBadgesGrid();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FRASES DA NINA (rotaciona no balão)
+═══════════════════════════════════════════════════════════ */
+const NINA_PHRASES = [
+  "Oi! Vamos explorar a ilha e descobrir novas atividades em família? 🌟",
+  "Dica: cada atividade esconde uma palavra especial. Consegue encontrar? 🔍",
+  "Que bom te ver por aqui! Você já coleciona distintivos? 🏅",
+  "Descubra as palavras-chave nas atividades e desbloqueie surpresas! ✨",
+  "A ilha tem muitos segredos esperando por você e sua família! 🌿",
+];
+
+/* ═══════════════════════════════════════════════════════════
+   ESTADO DO APLICATIVO
+═══════════════════════════════════════════════════════════ */
+let appState = {
+  soundEnabled: true,
+  unlockedBadges: [],
+  currentNinaPhrase: 0,
+};
+
+/* ═══════════════════════════════════════════════════════════
+   INICIALIZAÇÃO
+═══════════════════�// Ângulo atual da rotação da ilha (em graus)
+let islandRotationY = 0;
+
+function initSpline() {
+  const viewer = document.getElementById("spline-viewer");
+  if (!viewer) return;
+
+  // Previne o auto-scroll do navegador ao clicar com o botão do meio
+  viewer.addEventListener("mousedown", (e) => {
+    if (e.button === 1) e.preventDefault();
+  });
+
+  // Quando o Spline carrega, sinaliza que está pronto
+  viewer.addEventListener("load", () => {
+    splineReady = true;
+    console.log("[Caderno] Cena Spline carregada! Rotação via CSS ativa.");
+    const fallback = document.getElementById("spline-fallback");
+    if (fallback) fallback.style.opacity = "0";
+  });
+
+  // Timeout fallback: se Spline não carregar em 8s, avisa silenciosamente
+  setTimeout(() => {
+    if (!splineReady) {
+      console.warn("[Caderno] Spline não carregou em 8s.");
+    }
+  }, 8000);
+
+  // ── ROTAÇÃO DA ILHA VIA ARRASTAR ─────────────────────────────
+  // O `<spline-viewer>` web component não expõe a árvore 3D ao JS externo.
+  // A solução é aplicar rotateY() no próprio elemento canvas via CSS transform.
+  // O resultado visual é idêntico a girar a ilha.
+  window.addEventListener("pointerdown", (e) => {
+    // Não gira se o clique foi na interface (botões, modais, etc.)
+    if (e.target.closest('#ui-overlay') || e.target.closest('.book-modal') || e.target.closest('.board-modal') || e.target.closest('#tutorial-overlay')) {
+      return;
+    }
+    isDraggingIsland = true;
+    lastPointerX = e.clientX;
+    viewer.style.transition = "none"; // Remove transição suave durante o arraste
+  }, { capture: true });
+
+  window.addEventListener("pointermove", (e) => {
+    if (!isDraggingIsland) return;
+    const deltaX = e.clientX - lastPointerX;
+    lastPointerX = e.clientX;
+    islandRotationY += deltaX * 0.35; // 0.35° por pixel
+    viewer.style.transform = `rotateY(${islandRotationY}deg)`;
+  }, { capture: true });
+
+  window.addEventListener("pointerup", () => {
+    if (!isDraggingIsland) return;
+    isDraggingIsland = false;
+    // Adiciona momentum suave ao soltar
+    viewer.style.transition = "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+  }, { capture: true });
+}bject = buscarIlhaProfunda(cena);
+          
+          // 3. PLANO C (À Prova de Falhas): O Spline apaga nomes de objetos que não têm "Code Export" ativado.
+          // Como a ilha é o único objeto principal além das luzes e câmeras, pegamos o primeiro grupo estrutural!
+          if (!islandObject) {
+            const candidatos = cena.children.filter(c => 
+              !c.name?.toLowerCase().includes('light') && 
+              !c.name?.toLowerCase().includes('camera') &&
+              c.type !== 'DirectionalLight' &&
+              c.type !== 'PerspectiveCamera' &&
+              c.type !== 'OrthographicCamera'
+            );
+            if (candidatos.length > 0) {
+              islandObject = candidatos[0];
+            }
+          }
+        }
+      }
+
+      if (islandObject) {
+        clearInterval(buscarInterval);
+        showToast(`✅ Ilha conectada!`, "success");
+      } else if (tentativas >= 10) {
+        clearInterval(buscarInterval);
+        showToast("⚠️ O objeto 'ilha 2' definitivamente não foi encontrado.", "error", 6000);
+      }
+    }, 500);
+  });
+
+  // Eventos de Pointer para rotacionar a ilha (usando window com capture para evitar bloqueio do Spline)
+  window.addEventListener("pointerdown", (e) => {
+    // Evita rotacionar se o clique for na interface HTML por cima do 3D
+    if (e.target.closest('#ui-overlay') || e.target.closest('.book-modal') || e.target.closest('.board-modal')) {
+      return;
+    }
+    isDraggingIsland = true;
+    lastPointerX = e.clientX;
+    
+    // Se estiver arrastando mas a ilha for null, avisa na tela
+    if (!islandObject) {
+      showToast("Tentando girar, mas a ilha não foi conectada.", "error");
+    }
+  }, { capture: true });
+
+  window.addEventListener("pointermove", (e) => {
+    if (!isDraggingIsland || !islandObject) return;
+    const deltaX = e.clientX - lastPointerX;
+    lastPointerX = e.clientX;
+    const rotationSpeed = 0.006;
+    islandObject.rotation.y += deltaX * rotationSpeed;
+    
+    // Força uma atualização do splineApp caso o motor esteja pausado
+    if (typeof splineApp.triggerUpdate === 'function') splineApp.triggerUpdate();
+  }, { capture: true });
+
+  window.addEventListener("pointerup", () => {
+    isDraggingIsland = false;
+  }, { capture: true });
+
+  // Timeout fallback: se Spline não carregar em 8s, mostra aviso silencioso
+  setTimeout(() => {
+    if (!splineReady) {
+      console.warn("[Caderno] Spline não carregou em 8s. Verifique o arquivo .splinecode ou a URL.");
+    }
+  }, 8000);
+}
+
+/* ── Controle de câmera no Spline ────────────────────────── */
+function setSplineCamera(cameraName) {
+  if (!splineApp) return;
+  try {
+    // Método para trocar câmera ativa (API Spline Viewer)
+    if (typeof splineApp.setCamera === "function") {
+      splineApp.setCamera(cameraName);
+    } else if (typeof splineApp.emitEvent === "function") {
+      splineApp.emitEvent("keyUp", cameraName);
+    }
+  } catch (e) {
+    console.warn("[Caderno] setSplineCamera:", e);
+  }
+}
+
+/* ── Esconder/mostrar objeto no Spline ───────────────────── */
+function hideSplineObject(objectName) {
+  if (!splineApp) return;
+  try {
+    const obj = splineApp.findObjectByName?.(objectName);
+    if (obj) obj.visible = false;
+  } catch (e) {
+    console.warn("[Caderno] hideSplineObject:", e);
+  }
+}
+
+function showSplineObject(objectName) {
+  if (!splineApp) return;
+  try {
+    const obj = splineApp.findObjectByName?.(objectName);
+    if (obj) obj.visible = true;
+  } catch (e) {
+    console.warn("[Caderno] showSplineObject:", e);
+  }
+}
+
+/* ── Troca de livro: fechado → aberto ────────────────────── */
+function openBook() {
+  // Spline: alterna objetos
+  hideSplineObject("Book_Closed");
+  showSplineObject("Book_Open");
+  setSplineCamera("Camera_Book");
+
+  // Fallback: abre o overlay de atividades (já gerenciado pelo botão)
+}
+
+function closeBook() {
+  showSplineObject("Book_Closed");
+  hideSplineObject("Book_Open");
+  setSplineCamera("Camera_Home");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NINA – BALÃO DE FALA
+═══════════════════════════════════════════════════════════ */
+function initNina() {
+  const ninaText = document.getElementById("nina-text");
+  if (!ninaText) return;
+
+  // Rotaciona frases a cada 10 segundos
+  setInterval(() => {
+    appState.currentNinaPhrase = (appState.currentNinaPhrase + 1) % NINA_PHRASES.length;
+    const bubble = document.querySelector(".speech-bubble");
+    if (bubble) {
+      bubble.style.opacity = "0";
+      bubble.style.transform = "scale(0.9)";
+      setTimeout(() => {
+        ninaText.textContent = NINA_PHRASES[appState.currentNinaPhrase];
+        bubble.style.opacity = "1";
+        bubble.style.transform = "scale(1)";
+        bubble.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+      }, 300);
+    }
+  }, 10000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FORMULÁRIO DE PALAVRA-CHAVE
+═══════════════════════════════════════════════════════════ */
+function initKeywordForm() {
+  const form      = document.getElementById("keyword-form");
+  const input     = document.getElementById("keyword-input");
+  const feedback  = document.getElementById("keyword-feedback");
+
+  if (!form) return;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const raw     = input.value.trim();
+    const keyword = normalizeKeyword(raw);
+
+    if (!keyword) {
+      showFeedback(feedback, "Digite uma palavra-chave!", "error");
+      shakeElement(input);
+      return;
+    }
+
+    // Verifica se a palavra-chave existe
+    const badgeId = KEYWORDS_MAP[keyword];
+    if (!badgeId) {
+      showFeedback(feedback, "❌ Palavra-chave não encontrada. Tente de novo!", "error");
+      shakeElement(form);
+      return;
+    }
+
+    // Verifica se já foi desbloqueada
+    if (appState.unlockedBadges.includes(badgeId)) {
+      showFeedback(feedback, "✅ Você já desbloqueou esse distintivo!", "success");
+      return;
+    }
+
+    // Desbloqueia o badge!
+    unlockBadge(badgeId);
+    input.value = "";
+    showFeedback(feedback, "", "");
+  });
+
+  // Limpa feedback ao digitar
+  input.addEventListener("input", () => {
+    feedback.textContent = "";
+    feedback.className = "keyword-feedback";
+  });
+}
+
+function normalizeKeyword(str) {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/[^a-z0-9]/g, "");      // só letras e números
+}
+
+function showFeedback(el, msg, type) {
+  if (!el) return;
+  el.textContent = msg;
+  el.className = "keyword-feedback" + (type ? ` ${type}` : "");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SISTEMA DE DISTINTIVOS
+═══════════════════════════════════════════════════════════ */
+function unlockBadge(badgeId) {
+  appState.unlockedBadges.push(badgeId);
+  saveState();
+
+  const badge = BADGES_DATA.find(b => b.id === badgeId);
+  if (!badge) return;
+
+  // Atualiza UI
+  renderBadgesGrid();
+  updateBadgeProgress();
+
+  // Toast comemorativo
+  showToast(`🎉 Distintivo desbloqueado: ${badge.emoji} ${badge.name}!`);
+
+  // Nina reage
+  const ninaText = document.getElementById("nina-text");
+  if (ninaText) {
+    ninaText.textContent = `UAU! Você desbloqueou o distintivo "${badge.name}"! Parabéns! 🎉`;
+  }
+}
+
+function renderBadgesGrid() {
+  const grid = document.getElementById("badges-grid");
+  if (!grid) return;
+
+  const totalPages = Math.ceil(BADGES_DATA.length / BADGES_PER_PAGE);
+  const startIdx = currentBadgePage * BADGES_PER_PAGE;
+  const pageBadges = BADGES_DATA.slice(startIdx, startIdx + BADGES_PER_PAGE);
+
+  const chunks = [];
+  for(let i=0; i<pageBadges.length; i+=3) {
+    chunks.push(pageBadges.slice(i, i+3));
+  }
+
+  grid.innerHTML = chunks.map((chunk, index) => {
+    return `
+      <div class="signpost-plank plank-row-${index}">
+        <div class="plank-nails"><div class="nail left"></div><div class="nail right"></div></div>
+        <div class="badges-row">
+          ${chunk.map(badge => {
+            const isUnlocked = appState.unlockedBadges.includes(badge.id);
+            return `
+              <div class="badge-item ${isUnlocked ? "unlocked" : "locked"}"
+                   title="${isUnlocked ? badge.description : "Ainda não desbloqueado"}">
+                ${isUnlocked
+                  ? `<div class="badge-emoji">${badge.emoji}</div>`
+                  : `<div class="badge-locked-icon">🔒</div>`
+                }
+                <div class="${isUnlocked ? "badge-name" : "badge-locked-name"}">
+                  ${isUnlocked ? badge.name : "???"}
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // Controla exibição dos botões
+  const prevBtn = document.getElementById("badges-prev-btn");
+  const nextBtn = document.getElementById("badges-next-btn");
+  if (prevBtn) prevBtn.style.display = currentBadgePage > 0 ? "flex" : "none";
+  if (nextBtn) nextBtn.style.display = currentBadgePage < totalPages - 1 ? "flex" : "none";
+}
+
+function updateBadgeProgress() {
+  const count    = appState.unlockedBadges.length;
+  const total    = BADGES_DATA.length;
+  const pct      = total > 0 ? (count / total) * 100 : 0;
+
+  const countEl  = document.getElementById("badges-count");
+  const barEl    = document.getElementById("progress-bar");
+
+  if (countEl) countEl.textContent = count;
+  if (barEl)   barEl.style.width   = `${pct}%`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL LIVRO – CONTEÚDO DAS PÁGINAS
+   ─────────────────────────────────────────────────────────
+   Cada item do array = uma página individual.
+   2 páginas por spread (esquerda + direita).
+   Para trocar textos: edite os campos html de cada objeto.
+   Para trocar a imagem da Lira: troque o src em pg[0].html.
+   Para adicionar páginas: acrescente objetos ao array (sempre em pares).
+═══════════════════════════════════════════════════════════ */
+const BOOK_PAGES = [
+
+  /* ── PÁGINA 1 (esquerda, spread 0): Lira dá boas-vindas ── */
+  {
+    side: "left",
+    pageNum: 1,
+    html: `
+      <div class="pg-lira-layout">
+        <div class="pg-lira-top">
+          <!-- Lira: troque o src pelo arquivo real quando tiver a arte -->
+          <div class="lira-illustration">
+            <img
+              src="SVG/LIRA ARARA.svg"
+              alt="Lira, a arara guia"
+              class="lira-img"
+              onerror="this.style.display='none'; this.parentElement.classList.add('lira-placeholder'); this.parentElement.textContent='\uD83E\uDD9C'"
+            />
+          </div>
+          <div class="lira-speech">
+            Olá, aventureiros! Eu sou a <strong>Lira</strong>, e vou acompanhá-los nesta jornada cheia de descobertas!
+            Juntos, vamos cultivar hábitos saudáveis, fortalecer vínculos e criar memórias inesquecíveis.
+          </div>
+        </div>
+        <div class="pg-lira-body">
+          <div class="pg-welcome-badge">✦ Caderno de Descobertas ✦</div>
+          <div class="pg-title">
+            <span class="pg-emoji">🌿</span>
+            Bem-vindos ao Caderno de Descobertas!
+          </div>
+          <p class="pg-text">
+            Preparem-se para abrir este caderno e embarcar em uma <strong>aventura repleta de cuidado,
+            alegria e novas descobertas</strong>! Cada atividade é um convite para explorar, aprender
+            e viver momentos especiais <strong>em família</strong>.
+          </p>
+        </div>
+        <div class="pg-number left">pág. 1</div>
+      </div>
+    `
+  },
+
+  /* ── PÁGINA 2 (direita, spread 0): Como funcionam ────────── */
+  {
+    side: "right",
+    pageNum: 2,
+    html: `
+      <div class="pg-title">
+        <span class="pg-emoji">🗺️</span>
+        Como funcionam as atividades?
+      </div>
+      <div class="pg-steps">
+        <div class="pg-step">
+          <span class="pg-step-icon">👨‍👩‍👧</span>
+          <div class="pg-step-text">As atividades foram pensadas para <strong>toda a família</strong> — pais, filhos e quem mais quiser participar!</div>
+        </div>
+        <div class="pg-step">
+          <span class="pg-step-icon">🌱</span>
+          <div class="pg-step-text">Cada atividade incentiva <strong>hábitos saudáveis</strong>, convivência e aprendizado no cotidiano.</div>
+        </div>
+        <div class="pg-step">
+          <span class="pg-step-icon">🔑</span>
+          <div class="pg-step-text">Algumas atividades escondem uma <strong>palavra-chave especial</strong> — encontre e desbloqueie seu distintivo!</div>
+        </div>
+        <div class="pg-step">
+          <span class="pg-step-icon">❤️</span>
+          <div class="pg-step-text">O mais importante é <strong>criar memórias</strong> e transformar o cotidiano em descobertas.</div>
+        </div>
+      </div>
+      <div class="pg-number right">pág. 2</div>
+    `
+  },
+
+  /* ── PÁGINA 3 (esquerda, spread 1): O que vocês encontrarão ── */
+  {
+    side: "left",
+    pageNum: 3,
+    html: `
+      <div class="pg-title">
+        <span class="pg-emoji">🔍</span>
+        O que vocês vão encontrar?
+      </div>
+      <div class="pg-steps">
+        <div class="pg-step">
+          <span class="pg-step-icon">🌼</span>
+          <div class="pg-step-text"><strong>Atividades para fazer em família</strong> — simples, divertidas e cheias de significado.</div>
+        </div>
+        <div class="pg-step">
+          <span class="pg-step-icon">🧩</span>
+          <div class="pg-step-text"><strong>Desafios leves</strong> que incentivam a criatividade, o movimento e a curiosidade.</div>
+        </div>
+        <div class="pg-step">
+          <span class="pg-step-icon">💬</span>
+          <div class="pg-step-text">Experiências para <strong>conversar, brincar, criar e registrar memórias</strong> juntos.</div>
+        </div>
+        <div class="pg-step">
+          <span class="pg-step-icon">🌟</span>
+          <div class="pg-step-text">Incentivo à <strong>participação de toda a família</strong> no processo de descoberta.</div>
+        </div>
+      </div>
+      <div class="pg-number left">pág. 3</div>
+    `
+  },
+
+  /* ── PÁGINA 4 (direita, spread 1): Novidades em breve ────── */
+  {
+    side: "right",
+    pageNum: 4,
+    html: `
+      <div class="pg-title">
+        <span class="pg-emoji">🚀</span>
+        Novas atividades em breve!
+      </div>
+      <div class="pg-soon-badge">✨ Em construção</div>
+      <p class="pg-text">
+        O Caderno de Descobertas está sempre crescendo! Novas atividades serão
+        adicionadas conforme a <strong>jornada em família</strong> for evoluindo.
+      </p>
+      <div class="pg-highlight-box">
+        🌿 Cada nova fase trará <strong>atividades temáticas</strong>, novos desafios
+        e surpresas especiais para desbloquear na ilha. Fiquem de olho! 🏖️
+      </div>
+      <div class="pg-highlight-box" style="margin-top:10px; background:linear-gradient(135deg,rgba(109,191,103,0.14),rgba(109,191,103,0.04)); border-color:rgba(109,191,103,0.3);">
+        💡 <strong>Dica:</strong> enquanto aguardam, explorem as atividades já disponíveis
+        e descubram todas as palavras-chave escondidas!
+      </div>
+      <div class="pg-number right">pág. 4</div>
+    `
+  }
+];
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL LIVRO – ESTADO E LÓGICA
+═══════════════════════════════════════════════════════════ */
+let bookCurrentSpread = 0;    // spread atual (0-based)
+const BOOK_TOTAL_SPREADS = Math.ceil(BOOK_PAGES.length / 2);
+let bookIsAnimating = false;  // trava durante a animação de flip
+
+/** Retorna o HTML de uma página (i = índice absoluto em BOOK_PAGES) */
+function getPageHTML(index) {
+  if (index < 0 || index >= BOOK_PAGES.length) return "";
+  return BOOK_PAGES[index].html;
+}
+
+/** Renderiza as páginas do spread atual sem animação */
+function renderCurrentSpread() {
+  const leftIdx  = bookCurrentSpread * 2;
+  const rightIdx = bookCurrentSpread * 2 + 1;
+
+  const pageLeft  = document.getElementById("book-page-left");
+  const pageRight = document.getElementById("book-page-right");
+
+  if (pageLeft)  pageLeft.innerHTML  = getPageHTML(leftIdx);
+  if (pageRight) pageRight.innerHTML = getPageHTML(rightIdx);
+
+  updateBookNav();
+}
+
+/** Atualiza botões e dots */
+function updateBookNav() {
+  const prev  = document.getElementById("book-prev");
+  const next  = document.getElementById("book-next");
+  const dots  = document.getElementById("book-dots");
+
+  if (prev) prev.disabled = bookCurrentSpread === 0;
+  if (next) next.disabled = bookCurrentSpread === BOOK_TOTAL_SPREADS - 1;
+
+  if (dots) {
+    dots.innerHTML = "";
+    for (let i = 0; i < BOOK_TOTAL_SPREADS; i++) {
+      const dot = document.createElement("button");
+      dot.className = `book-dot${i === bookCurrentSpread ? " active" : ""}`;
+      dot.setAttribute("aria-label", `Ir para a página ${i * 2 + 1}`);
+      dot.addEventListener("click", () => goToSpread(i));
+      dots.appendChild(dot);
+    }
+  }
+}
+
+/** Vai direto para um spread (sem flip) */
+function goToSpread(index) {
+  if (bookIsAnimating || index === bookCurrentSpread) return;
+  bookCurrentSpread = index;
+  renderCurrentSpread();
+}
+
+/* ── ANIMAÇÃO DE VIRAR PÁGINA ────────────────────────────── */
+
+/**
+ * Executa o flip para frente (spread + 1).
+ * Técnica:
+ *   1. flipper cobre a página DIREITA do spread atual
+ *   2. face frontal = conteúdo atual da página direita
+ *   3. face traseira = página ESQUERDA do próximo spread
+ *   4. flip rotateY(0 → -180deg) com transform-origin: left
+ *   5. após animação: atualiza páginas, esconde flipper
+ */
+function flipForward() {
+  if (bookIsAnimating || bookCurrentSpread >= BOOK_TOTAL_SPREADS - 1) return;
+  bookIsAnimating = true;
+
+  const flipper = document.getElementById("book-flipper");
+  const front   = document.getElementById("flipper-front");
+  const back    = document.getElementById("flipper-back");
+  const pagesWrapper = flipper.parentElement;
+
+  /* Conteúdo das faces */
+  const curRightIdx  = bookCurrentSpread * 2 + 1;
+  const nextLeftIdx  = (bookCurrentSpread + 1) * 2;
+  front.innerHTML = getPageHTML(curRightIdx);
+  back.innerHTML  = getPageHTML(nextLeftIdx);
+
+  /* Posiciona o flipper sobre a página direita */
+  const leftPage  = document.getElementById("book-page-left");
+  const spine     = pagesWrapper.querySelector(".book-center-spine");
+  const spineWidth = spine ? spine.offsetWidth : 28;
+  const halfWidth  = (pagesWrapper.offsetWidth - spineWidth) / 2;
+
+  flipper.style.left            = `calc(50% + ${spineWidth / 2}px)`;
+  flipper.style.width           = `${halfWidth}px`;
+  flipper.style.transformOrigin = "left center";
+  flipper.style.display         = "block";
+
+  /* Dispara animação: double-rAF garante que o browser renderiza
+     o flipper (display:block) antes de iniciar a transição CSS */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      flipper.classList.add("flipping-forward");
+    });
+  });
+
+  /* Após animação: limpa e atualiza */
+  setTimeout(() => {
+    bookCurrentSpread++;
+    flipper.style.display = "none";
+    flipper.className     = "book-flipper";
+    renderCurrentSpread();
+    bookIsAnimating = false;
+  }, 580);
+}
+
+/**
+ * Executa o flip para trás (spread - 1).
+ *   1. flipper cobre a página ESQUERDA do spread atual
+ *   2. face frontal = conteúdo atual da página esquerda
+ *   3. face traseira = página DIREITA do spread anterior
+ *   4. flip rotateY(0 → 180deg) com transform-origin: right
+ */
+function flipBackward() {
+  if (bookIsAnimating || bookCurrentSpread <= 0) return;
+  bookIsAnimating = true;
+
+  const flipper = document.getElementById("book-flipper");
+  const front   = document.getElementById("flipper-front");
+  const back    = document.getElementById("flipper-back");
+  const pagesWrapper = flipper.parentElement;
+
+  const curLeftIdx   = bookCurrentSpread * 2;
+  const prevRightIdx = (bookCurrentSpread - 1) * 2 + 1;
+  front.innerHTML = getPageHTML(curLeftIdx);
+  back.innerHTML  = getPageHTML(prevRightIdx);
+
+  const spine      = pagesWrapper.querySelector(".book-center-spine");
+  const spineWidth = spine ? spine.offsetWidth : 28;
+  const halfWidth  = (pagesWrapper.offsetWidth - spineWidth) / 2;
+
+  flipper.style.left            = `0px`;
+  flipper.style.width           = `${halfWidth}px`;
+  flipper.style.transformOrigin = "right center";
+  flipper.style.display         = "block";
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      flipper.classList.add("flipping-backward");
+    });
+  });
+
+  setTimeout(() => {
+    bookCurrentSpread--;
+    flipper.style.display = "none";
+    flipper.className     = "book-flipper";
+    renderCurrentSpread();
+    bookIsAnimating = false;
+  }, 580);
+}
+
+/* ── ABRIR / FECHAR LIVRO ────────────────────────────────── */
+
+/** Mostra o overlay com a CAPA FECHADA (largura de uma pagina) */
+function openBook() {
+  const overlay = document.getElementById("book-modal-overlay");
+  if (!overlay) return;
+
+  bookCurrentSpread = 0;
+  overlay.hidden = false;
+  overlay.removeAttribute("aria-hidden");
+  document.body.classList.add("has-overlay");
+  document.body.style.overflow = "hidden";
+
+  /* Shell: comeca com uma pagina de largura (livro fechado) */
+  const shell = document.getElementById("book-shell");
+  if (shell) {
+    shell.classList.remove("is-open");
+    shell.classList.add("is-closed");
+  }
+
+  /* Garante estado correto: capa visivel, paginas escondidas */
+  const coverPanel   = document.getElementById("book-cover-panel");
+  const pagesWrapper = document.getElementById("book-pages-wrapper");
+  if (coverPanel) {
+    coverPanel.classList.remove("is-opening", "is-open");
+    coverPanel.style.display = "";
+  }
+  if (pagesWrapper) {
+    pagesWrapper.classList.remove("is-visible");
+  }
+
+  renderCurrentSpread();
+
+  setTimeout(() => {
+    document.getElementById("btn-open-cover")?.focus();
+  }, 150);
+}
+
+/** Anima a capa virando e expande o shell para duas paginas */
+function openBookCover() {
+  const coverPanel   = document.getElementById("book-cover-panel");
+  const pagesWrapper = document.getElementById("book-pages-wrapper");
+  const shell        = document.getElementById("book-shell");
+  if (!coverPanel) return;
+
+  /* 1. Capa comeca a girar */
+  coverPanel.classList.add("is-opening");
+
+  /* 2. Shell expande simultaneamente (uma pagina -> duas paginas) */
+  if (shell) {
+    shell.classList.remove("is-closed");
+    shell.classList.add("is-open");
+  }
+
+  /* 3. Em ~340ms capa ja passou dos 90deg (invisivel):
+        momento certo para revelar as paginas por baixo */
+  setTimeout(() => {
+    if (pagesWrapper) pagesWrapper.classList.add("is-visible");
+  }, 340);
+
+  /* 4. Apos animacao completa: esconde a capa definitivamente */
+  setTimeout(() => {
+    coverPanel.classList.add("is-open");
+    coverPanel.classList.remove("is-opening");
+    document.getElementById("book-next")?.focus();
+  }, 720);
+}
+
+function closeBook() {
+  const overlay = document.getElementById("book-modal-overlay");
+  if (!overlay) return;
+
+  const modal = document.getElementById("book-modal");
+  if (modal) {
+    modal.style.transition = "opacity 0.28s ease, transform 0.28s ease";
+    modal.style.opacity    = "0";
+    modal.style.transform  = "scale(0.92) translateY(20px)";
+  }
+
+  setTimeout(() => {
+    overlay.hidden = true;
+    overlay.setAttribute("aria-hidden", "true");
+    if (modal) {
+      modal.style.opacity    = "";
+      modal.style.transform  = "";
+      modal.style.transition = "";
+    }
+    const anyOpen = [...document.querySelectorAll(".overlay")].some(o => !o.hidden);
+    if (!anyOpen) {
+      document.body.classList.remove("has-overlay");
+      document.body.style.overflow = "";
+    }
+  }, 300);
+}
+
+/* ── INIT LIVRO ────────────────────────────────────────────── */
+function initBook() {
+  document.getElementById("book-next")?.addEventListener("click", flipForward);
+  document.getElementById("book-prev")?.addEventListener("click", flipBackward);
+  document.getElementById("btn-open-cover")?.addEventListener("click", openBookCover);
+  document.getElementById("book-close-btn")?.addEventListener("click", closeBook);
+  document.getElementById("book-backdrop")?.addEventListener("click", closeBook);
+
+  document.addEventListener("keydown", (e) => {
+    const overlay = document.getElementById("book-modal-overlay");
+    if (overlay?.hidden) return;
+    const pagesVisible = document.getElementById("book-pages-wrapper")?.classList.contains("is-visible");
+    if (!pagesVisible) return; /* so navega se o livro estiver aberto */
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); flipForward(); }
+    if (e.key === "ArrowLeft"  || e.key === "PageUp")   { e.preventDefault(); flipBackward(); }
+    if (e.key === "Escape") closeBook();
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BOTÕES PRINCIPAIS
+═══════════════════════════════════════════════════════════ */
+function initButtons() {
+  /* Ver atividades → abre o livro */
+  document.getElementById("btn-atividades")?.addEventListener("click", openBook);
+
+  /* Ver distintivos */
+  document.getElementById("btn-distintivos")?.addEventListener("click", () => {
+    openOverlay("overlay-distintivos");
+  });
+
+  /* Dicas e Ajuda → reabre o tutorial */
+  document.getElementById("btn-dicas")?.addEventListener("click", () => {
+    if (typeof startTutorial === 'function') {
+      startTutorial();
+    } else {
+      showToast("💡 Explore as atividades, encontre palavras-chave e desbloqueie distintivos!");
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   OVERLAYS DISTINIVOS
+═══════════════════════════════════════════════════════════ */
+function initOverlays() {
+  document.getElementById("close-distintivos")?.addEventListener("click", () => {
+    closeOverlay("overlay-distintivos");
+  });
+  document.getElementById("backdrop-distintivos")?.addEventListener("click", () => {
+    closeOverlay("overlay-distintivos");
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !document.getElementById("overlay-distintivos")?.hidden) {
+      closeOverlay("overlay-distintivos");
+    }
+  });
+}
+
+function openOverlay(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.hidden = false;
+  document.body.classList.add("has-overlay");
+  // Bloqueia scroll do fundo
+  document.body.style.overflow = "hidden";
+  // Foco no fechar para acessibilidade
+  setTimeout(() => {
+    const closeBtn = el.querySelector(".overlay-close") || el.querySelector(".board-close-btn");
+    closeBtn?.focus();
+  }, 100);
+}
+
+function closeOverlay(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  // Animação de saída
+  const panel = el.querySelector(".overlay-panel") || el.querySelector(".board-modal");
+  if (panel) {
+    panel.style.transition = "opacity 0.25s ease, transform 0.25s ease";
+    panel.style.opacity = "0";
+    panel.style.transform = "scale(0.92)";
+    setTimeout(() => {
+      el.hidden = true;
+      panel.style.opacity = "";
+      panel.style.transform = "";
+      panel.style.transition = "";
+    }, 260);
+  } else {
+    el.hidden = true;
+  }
+
+  // Só remove se todos overlays estiverem fechados
+  const allOverlays = document.querySelectorAll(".overlay");
+  const anyOpen = [...allOverlays].some(o => !o.hidden);
+  if (!anyOpen) {
+    document.body.classList.remove("has-overlay");
+    document.body.style.overflow = "";
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SOM
+═══════════════════════════════════════════════════════════ */
+function initSoundToggle() {
+  const btn = document.getElementById("btn-sound");
+  if (!btn) return;
+
+  updateSoundButton(btn);
+
+  btn.addEventListener("click", () => {
+    appState.soundEnabled = !appState.soundEnabled;
+    saveState();
+    updateSoundButton(btn);
+    showToast(appState.soundEnabled ? "🔊 Som ativado!" : "🔇 Som desativado!");
+  });
+}
+
+function updateSoundButton(btn) {
+  if (!btn) return;
+  const muted = !appState.soundEnabled;
+  btn.classList.toggle("muted", muted);
+  btn.setAttribute("aria-label", muted ? "Ativar som" : "Desativar som");
+  btn.innerHTML = muted
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <line x1="23" y1="9" x2="17" y2="15"></line>
+        <line x1="17" y1="9" x2="23" y2="15"></line>
+       </svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+       </svg>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST DE NOTIFICAÇÃO
+═══════════════════════════════════════════════════════════ */
+let toastTimer = null;
+
+function showToast(msg, type = "success", duration = 3200) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+
+  clearTimeout(toastTimer);
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  toast.classList.add("show");
+
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, duration);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   UTILITÁRIOS
+═══════════════════════════════════════════════════════════ */
+function shakeElement(el) {
+  el.classList.remove("shake");
+  void el.offsetWidth; // reflow para reiniciar animação
+  el.classList.add("shake");
+  setTimeout(() => el.classList.remove("shake"), 500);
+}

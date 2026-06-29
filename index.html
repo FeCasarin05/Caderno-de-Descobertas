@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caderno de Descobertas – Explore, Descubra, Cresça!</title>
+  <meta name="description"
+    content="Caderno de Descobertas é um mundo interativo para famílias explorarem atividades, descobrirem palavras-chave e desbloquearem distintivos especiais." />
+
+  <link rel="stylesheet" href="css/style.css?v=30" />
+  <link rel="stylesheet" href="css/book-modal.css?v=30" />
+  <link rel="stylesheet" href="css/tutorial.css?v=30" />
+  <link rel="stylesheet" href="css/island-discovery.css?v=30" />
+
+  <!-- Import Map para Three.js nativo (sem npm) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <!-- Spline Viewer Removido a favor do Three.js Nativo -->
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       CENÁRIO 3D (FUNDO NATIVO)
+  ════════════════════════════════════════════ -->
+  <div id="three-bg" aria-hidden="true">
+    <canvas id="three-canvas"></canvas>
+
+    <!-- ☁️  NUVENS 3D EM SVG (ficam atrás do Spline) -->
+    <div id="sky-bg" aria-hidden="true">
+
+      <!-- NUVEM A – grande, esquerda, plano de fundo -->
+      <svg class="cloud cloud-a" viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="sA" cx="34%" cy="26%" r="66%">
+            <stop offset="0%" stop-color="#FFFFFF" />
+            <stop offset="28%" stop-color="#F2FAFF" />
+            <stop offset="68%" stop-color="#C6E2F5" />
+            <stop offset="100%" stop-color="#9DC4E0" />
+          </radialGradient>
+          <clipPath id="clipA">
+            <rect x="0" y="0" width="320" height="132" />
+          </clipPath>
+        </defs>
+        <!-- Sombra projetada -->
+        <ellipse cx="158" cy="150" rx="118" ry="7" fill="rgba(80,140,200,0.18)" />
+        <!-- Camada traseira (mais fria/escura = profundidade) -->
+        <g clip-path="url(#clipA)" opacity="0.55">
+          <circle cx="95" cy="108" r="46" fill="#AACDE6" />
+          <circle cx="160" cy="92" r="58" fill="#AACDE6" />
+          <circle cx="225" cy="106" r="44" fill="#AACDE6" />
+        </g>
+        <!-- Camada frontal esférica -->
+        <g clip-path="url(#clipA)">
+          <circle cx="68" cy="112" r="46" fill="url(#sA)" />
+          <circle cx="128" cy="95" r="55" fill="url(#sA)" />
+          <circle cx="188" cy="87" r="62" fill="url(#sA)" />
+          <circle cx="248" cy="104" r="48" fill="url(#sA)" />
+        </g>
+      </svg>
+
+      <!-- NUVEM B – grande, direita, plano de fundo -->
+      <svg class="cloud cloud-b" viewBox="0 0 380 170" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="sB" cx="36%" cy="28%" r="64%">
+            <stop offset="0%" stop-color="#FFFFFF" />
+            <stop offset="25%" stop-color="#F5FBFF" />
+            <stop offset="65%" stop-color="#CAEAF8" />
+            <stop offset="100%" stop-color="#9EC8E8" />
+          </radialGradient>
+          <clipPath id="clipB">
+            <rect x="0" y="0" width="380" height="148" />
+          </clipPath>
+        </defs>
+        <ellipse cx="188" cy="165" rx="138" ry="8" fill="rgba(80,140,200,0.16)" />
+        <g clip-path="url(#clipB)" opacity="0.5">
+          <circle cx="90" cy="118" r="50" fill="#AACDE6" />
+          <circle cx="162" cy="100" r="62" fill="#AACDE6" />
+          <circle cx="240" cy="96" r="66" fill="#AACDE6" />
+          <circle cx="312" cy="112" r="50" fill="#AACDE6" />
+        </g>
+        <g clip-path="url(#clipB)">
+          <circle cx="72" cy="122" r="50" fill="url(#sB)" />
+          <circle cx="145" cy="104" r="60" fill="url(#sB)" />
+          <circle cx="220" cy="92" r="70" fill="url(#sB)" />
+          <circle cx="295" cy="106" r="58" fill="url(#sB)" />
+          <circle cx="345" cy="118" r="46" fill="url(#sB)" />
+        </g>
+      </svg>
+
+      <!-- NUVEM C – média, centro-esquerda -->
+      <svg class="cloud cloud-c" viewBox="0 0 240 125" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="sC" cx="33%" cy="27%" r="67%">
+            <stop offset="0%" stop-color="#FFFFFF" />
+            <stop offset="30%" stop-color="#EFF8FF" />
+            <stop offset="70%" stop-color="#C2DFEF" />
+            <stop offset="100%" stop-color="#96BDD8" />
+          </radialGradient>
+          <clipPath id="clipC">
+            <rect x="0" y="0" width="240" height="106" />
+          </clipPath>
+        </defs>
+        <ellipse cx="118" cy="120" rx="88" ry="6" fill="rgba(80,140,200,0.15)" />
+        <g clip-path="url(#clipC)" opacity="0.5">
+          <circle cx="72" cy="86" r="38" fill="#AACDE6" />
+          <circle cx="130" cy="74" r="48" fill="#AACDE6" />
+          <circle cx="185" cy="86" r="36" fill="#AACDE6" />
+        </g>
+        <g clip-path="url(#clipC)">
+          <circle cx="58" cy="90" r="40" fill="url(#sC)" />
+          <circle cx="115" cy="74" r="52" fill="url(#sC)" />
+          <circle cx="178" cy="88" r="42" fill="url(#sC)" />
+        </g>
+      </svg>
+
+      <!-- NUVEM D â€“ média, centro-direita -->
+      <svg class="cloud cloud-d" viewBox="0 0 280 135" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="sD" cx="37%" cy="29%" r="63%">
+            <stop offset="0%" stop-color="#FFFFFF" />
+            <stop offset="28%" stop-color="#F0F9FF" />
+            <stop offset="68%" stop-color="#C4E0F2" />
+            <stop offset="100%" stop-color="#98C2DC" />
+          </radialGradient>
+          <clipPath id="clipD">
+            <rect x="0" y="0" width="280" height="116" />
+          </clipPath>
+        </defs>
+        <ellipse cx="138" cy="130" rx="105" ry="7" fill="rgba(80,140,200,0.15)" />
+        <g clip-path="url(#clipD)" opacity="0.5">
+          <circle cx="78" cy="96" r="42" fill="#B0D0E8" />
+          <circle cx="145" cy="80" r="54" fill="#B0D0E8" />
+          <circle cx="210" cy="95" r="40" fill="#B0D0E8" />
+        </g>
+        <g clip-path="url(#clipD)">
+          <circle cx="62" cy="100" r="44" fill="url(#sD)" />
+          <circle cx="130" cy="82" r="56" fill="url(#sD)" />
+          <circle cx="196" cy="96" r="48" fill="url(#sD)" />
+          <circle cx="246" cy="106" r="38" fill="url(#sD)" />
+        </g>
+      </svg>
+
+      <!-- NUVEM E â€“ pequena, esquerda baixa -->
+      <svg class="cloud cloud-e" viewBox="0 0 180 95" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="sE" cx="35%" cy="28%" r="65%">
+            <stop offset="0%" stop-color="#FFFFFF" />
+            <stop offset="32%" stop-color="#EEF7FF" />
+            <stop offset="72%" stop-color="#C0DCEE" />
+            <stop offset="100%" stop-color="#94BADC" />
+          </radialGradient>
+          <clipPath id="clipE">
+            <rect x="0" y="0" width="180" height="82" />
+          </clipPath>
+        </defs>
+        <ellipse cx="88" cy="91" rx="64" ry="5" fill="rgba(80,140,200,0.13)" />
+        <g clip-path="url(#clipE)" opacity="0.5">
+          <circle cx="56" cy="66" r="28" fill="#AACDE6" />
+          <circle cx="102" cy="56" r="36" fill="#AACDE6" />
+          <circle cx="142" cy="66" r="26" fill="#AACDE6" />
+        </g>
+        <g clip-path="url(#clipE)">
+          <circle cx="46" cy="68" r="30" fill="url(#sE)" />
+          <circle cx="96" cy="56" r="40" fill="url(#sE)" />
+          <circle cx="140" cy="68" r="30" fill="url(#sE)" />
+        </g>
+      </svg>
+
+      <!-- NUVEM F â€“ pequena, direita baixa -->
+      <svg class="cloud cloud-f" viewBox="0 0 200 105" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="sF" cx="34%" cy="26%" r="66%">
+            <stop offset="0%" stop-color="#FFFFFF" />
+            <stop offset="30%" stop-color="#F0F9FF" />
+            <stop offset="68%" stop-color="#C2DFEE" />
+            <stop offset="100%" stop-color="#96BBDB" />
+          </radialGradient>
+          <clipPath id="clipF">
+            <rect x="0" y="0" width="200" height="90" />
+          </clipPath>
+        </defs>
+        <ellipse cx="98" cy="101" rx="72" ry="6" fill="rgba(80,140,200,0.13)" />
+        <g clip-path="url(#clipF)" opacity="0.5">
+          <circle cx="60" cy="74" r="32" fill="#AACDE6" />
+          <circle cx="106" cy="62" r="40" fill="#AACDE6" />
+          <circle cx="152" cy="74" r="30" fill="#AACDE6" />
+        </g>
+        <g clip-path="url(#clipF)">
+          <circle cx="50" cy="76" r="34" fill="url(#sF)" />
+          <circle cx="100" cy="62" r="44" fill="url(#sF)" />
+          <circle cx="150" cy="76" r="34" fill="url(#sF)" />
+        </g>
+      </svg>
+
+    </div><!-- /sky-bg -->
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       INTERFACE HTML SOBREPOSTA
+  ════════════════════════════════════════════ -->
+  <div id="ui-overlay">
+
+    <!-- ── HEADER ────────────────────────────── -->
+    <header id="header">
+      <div id="logo-area">
+        <span class="logo-icon" aria-hidden="true">✨</span>
+        <div class="logo-text">
+          <span class="logo-title">Caderno de</span>
+          <span class="logo-highlight">Descobertas</span>
+        </div>
+      </div>
+
+      <div id="header-controls">
+        <button id="btn-sound" class="control-btn" aria-label="Ativar/desativar som" title="Som">
+          <img src="SVG/ícone som.svg" alt="Som" aria-hidden="true" class="control-icon" />
+        </button>
+        <button id="btn-settings" class="control-btn" aria-label="Configurações" title="Configurações">
+          <img src="SVG/ícone config.svg" alt="Configurações" aria-hidden="true" class="control-icon" />
+        </button>
+      </div>
+    </header>
+
+    <!-- ── NINA – PERSONAGEM GUIA ─────────────── -->
+    <aside id="nina-area" aria-label="Personagem guia Nina">
+      <div class="nina-character" id="nina-character">
+        <img src="SVG/NINA CAPIVARA.svg" alt="Nina, a capivara guia" class="nina-img"
+          onerror="this.style.display='none'; this.parentElement.classList.add('nina-placeholder')" />
+      </div>
+      <!-- Balão sai da Nina, posicionado à direita dela -->
+      <div class="speech-bubble" id="nina-bubble">
+        <p id="nina-text">Oi! Vamos explorar a ilha e descobrir novas atividades em família? 🌟</p>
+      </div>
+    </aside>
+
+    <!-- ── CAMPO DE PALAVRA-CHAVE ─────────────── -->
+    <section id="keyword-area" aria-label="Inserir palavra-chave">
+      <form id="keyword-form" autocomplete="off">
+        <svg class="keyword-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="keyword-input" class="keyword-input" placeholder="Digite uma palavra-chave"
+          maxlength="40" aria-label="Digite uma palavra-chave descoberta nas atividades" autocomplete="off"
+          spellcheck="false" />
+        <button type="submit" id="btn-unlock" class="btn-unlock" aria-label="Desbloquear distintivo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </form>
+      <div id="keyword-feedback" class="keyword-feedback" aria-live="polite"></div>
+    </section>
+
+    <!-- ── BOTÕES PRINCIPAIS ──────────────────── -->
+    <nav id="main-buttons" aria-label="Navegação principal">
+      <button id="btn-atividades" class="main-btn btn-primary" aria-label="Ver atividades">
+        <img src="SVG/ícone livro.svg" alt="" aria-hidden="true" class="btn-svg-icon" />
+        <span class="btn-label">Ver atividades</span>
+      </button>
+      <button id="btn-distintivos" class="main-btn btn-secondary" aria-label="Ver distintivos">
+        <img src="SVG/ícone distintivos.svg" alt="" aria-hidden="true" class="btn-svg-icon" />
+        <span class="btn-label">Ver distintivos</span>
+      </button>
+    </nav>
+
+    <!-- ── DICAS E AJUDA (mobile badge) ──────── -->
+    <button id="btn-dicas" class="dicas-btn" aria-label="Dicas e Ajuda">
+      <span aria-hidden="true">💡</span>
+      <span>Dicas e Ajuda</span>
+    </button>
+
+  </div><!-- /ui-overlay -->
+
+
+  <!-- ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ 
+       MODAL LIVRO – VER ATIVIDADES
+  ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═  -->
+  <div id="book-modal-overlay" hidden aria-hidden="true">
+
+    <div class="book-backdrop" id="book-backdrop"></div>
+
+    <div class="book-modal" role="dialog" aria-modal="true" aria-label="Livro de Aventuras" id="book-modal">
+
+      <!-- Botão fechar (sempre visível) -->
+      <button class="book-close-btn" id="book-close-btn" aria-label="Fechar livro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Perspectiva 3D -->
+      <div class="book-body" id="book-body">
+        <div class="book-shell" id="book-shell">
+
+          <!-- Cantos dourados -->
+          <div class="book-corner tl" aria-hidden="true"></div>
+          <div class="book-corner tr" aria-hidden="true"></div>
+          <div class="book-corner bl" aria-hidden="true"></div>
+          <div class="book-corner br" aria-hidden="true"></div>
+
+          <!-- ═ ═  ESTADO 1: CAPA FECHADA ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ 
+               Visível quando o livro ainda não foi aberto.
+               Cor: tom avermelhado/bordô (wine/burgundy).
+               A capa "vira" para a esquerda ao clicar em "Abrir".
+          ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═  -->
+          <div class="book-cover-panel" id="book-cover-panel" aria-label="Capa do livro">
+            <!-- Textura / borda interna decorativa -->
+            <div class="cover-inner-border">
+              <div class="cover-top-ornament" aria-hidden="true">✦ ✦ ✦</div>
+              <div class="cover-book-icon" aria-hidden="true">
+                <img src="SVG/LIRA ARARA.svg" alt="Lira Arara" style="height: 4.5rem; width: auto; object-fit: contain;">
+              </div>
+              <h2 class="cover-main-title">Livro de<br>Aventuras</h2>
+              <p class="cover-sub-title">✦ Caderno de Descobertas ✦</p>
+              <div class="cover-divider" aria-hidden="true"></div>
+              <button class="btn-open-cover" id="btn-open-cover">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                Abrir o Livro
+              </button>
+              <div class="cover-bottom-ornament" aria-hidden="true">✦ ✦ ✦</div>
+            </div>
+            <!-- Lombada visível na capa fechada -->
+            <div class="cover-spine" aria-hidden="true"></div>
+          </div>
+
+          <!-- ═ ═  ESTADO 2: PÁGINAS ABERTAS ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ 
+               Oculto inicialmente; aparece após clicar "Abrir".
+          ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═  -->
+          <div class="book-pages-wrapper" id="book-pages-wrapper">
+
+            <!-- Página esquerda -->
+            <div class="book-page page-left" id="book-page-left">
+              <!-- conteúdo injetado por JS -->
+            </div>
+
+            <!-- Lombada central -->
+            <div class="book-center-spine" aria-hidden="true">
+              <div class="spine-shadow-left"></div>
+              <div class="spine-line"></div>
+              <div class="spine-shadow-right"></div>
+            </div>
+
+            <!-- Página direita -->
+            <div class="book-page page-right" id="book-page-right">
+              <!-- conteúdo injetado por JS -->
+            </div>
+
+            <!-- Page flipper -->
+            <div class="book-flipper" id="book-flipper">
+              <div class="flipper-face flipper-front" id="flipper-front"></div>
+              <div class="flipper-face flipper-back" id="flipper-back"></div>
+            </div>
+
+            <!-- ── Setas dentro do livro ─────────────── -->
+            <button class="book-arrow arrow-prev" id="book-prev" aria-label="Página anterior">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                aria-hidden="true">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+
+            <button class="book-arrow arrow-next" id="book-next" aria-label="Próxima página">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                aria-hidden="true">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <!-- ── Dots de página (barra inferior dentro do livro) -->
+            <div class="book-dots-bar" aria-hidden="true">
+              <div class="book-dots" id="book-dots"></div>
+            </div>
+
+          </div><!-- /book-pages-wrapper -->
+
+        </div><!-- /book-shell -->
+      </div><!-- /book-body -->
+
+    </div><!-- /book-modal -->
+  </div><!-- /book-modal-overlay -->
+
+
+  <!-- ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ 
+       OVERLAY – DISTINTIVOS
+  ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═  -->
+  <div id="overlay-distintivos" class="overlay board-modal-overlay" role="dialog" aria-modal="true"
+    aria-label="Meus Distintivos" hidden>
+    <div class="board-backdrop" id="backdrop-distintivos"></div>
+    <div class="board-modal" id="board-modal">
+      <button class="board-close-btn" id="close-distintivos" aria-label="Fechar distintivos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Botões de Navegação do Mural -->
+      <button class="board-nav-btn nav-prev" id="badges-prev-btn" aria-label="Página anterior" style="display:none;"
+        onclick="prevBadgePage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button class="board-nav-btn nav-next" id="badges-next-btn" aria-label="Próxima página" style="display:none;"
+        onclick="nextBadgePage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+      <div class="board-body signpost-style">
+        <div class="signpost-posts">
+          <div class="signpost-post post-left"></div>
+          <div class="signpost-post post-right"></div>
+        </div>
+
+        <div class="signpost-plank plank-title">
+          <div class="plank-nails">
+            <div class="nail left"></div>
+            <div class="nail right"></div>
+          </div>
+          <div class="board-header">
+            <span class="board-icon" aria-hidden="true">🏅</span>
+            <h2 class="board-title">Meus Distintivos</h2>
+          </div>
+          <p class="board-subtitle">Desbloqueie distintivos encontrando palavras!</p>
+        </div>
+
+        <div id="badges-grid" class="signpost-badges-container">
+          <!-- Distintivos são renderizados via JS -->
+        </div>
+
+        <div class="signpost-plank plank-footer">
+          <div class="plank-nails">
+            <div class="nail left"></div>
+            <div class="nail right"></div>
+          </div>
+          <div class="board-footer">
+            <div class="progress-info">
+              <span id="badges-count">0</span> de <span id="badges-total">6</span> distintivos
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar" id="progress-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /overlay-distintivos -->
+
+
+  <!-- ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ 
+       TOAST DE NOTIFICAÇÃO
+  ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═  -->
+
+  <!-- ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ 
+       TUTORIAL ONBOARDING – Nina & Lira
+  ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═ ═  -->
+  <div id="tutorial-overlay" aria-hidden="true" hidden>
+
+    <!-- Backdrop translúcido -->
+    <div class="tutorial-backdrop" id="tutorial-backdrop"></div>
+
+    <!-- ── NINA (tutorial) ─────────────────────
+         Versão da Nina usada apenas durante o tutorial.
+         Nina fixa da HOME fica oculta via CSS enquanto tutorial-active.
+    ──────────────────────────────────────────── -->
+    <div id="tutorial-nina" class="tutorial-character tutorial-nina" aria-hidden="true">
+      <img src="SVG/NINA CAPIVARA.svg" alt="Nina, a capivara guardiã" class="tchar-img"
+        onerror="this.style.display='none'" />
+    </div>
+
+    <!-- ── LIRA (tutorial) ─────────────────────
+         Personagem Lira – aparece apenas durante o tutorial.
+         SUBSTITUIR: quando a imagem final estiver disponível, troque o
+         <div class="lira-placeholder-char"> abaixo por:
+         <img src="SVG/LIRA ARARA.svg" alt="Lira, a arara guia" class="tchar-img" />
+    ──────────────────────────────────────────── -->
+    <div id="tutorial-lira" class="tutorial-character tutorial-lira" aria-hidden="true">
+      <!--
+        LIRA ARARA – imagem final.
+        Se a imagem não carregar, o onerror esconde o elemento silenciosamente.
+      -->
+      <img src="SVG/LIRA ARARA.svg" alt="Lira, a arara guia aventureira" class="tchar-img"
+        onerror="this.style.display='none'" />
+    </div>
+
+    <!-- ── Balão de fala ─────────────────────── -->
+    <div id="tutorial-bubble" class="tutorial-bubble" role="dialog" aria-modal="false" aria-label="Tutorial guiado">
+      <!-- Badge da personagem atual -->
+      <div class="tutorial-char-badge char-nina" id="tutorial-char-badge">
+        <span class="char-emoji" id="tutorial-char-emoji">🐾</span>
+        <span class="char-name" id="tutorial-char-name">Nina</span>
+      </div>
+
+      <!-- Texto da fala -->
+      <p id="tutorial-text" class="tutorial-text"></p>
+
+      <div class="tutorial-divider"></div>
+
+      <!-- Botões de navegação -->
+      <div class="tutorial-nav">
+        <button id="tutorial-skip" class="tutorial-skip-btn" type="button">
+          Pular tutorial
+        </button>
+        <div class="tutorial-nav-right">
+          <button id="tutorial-prev" class="tutorial-prev-btn" type="button" hidden>
+            ← Voltar
+          </button>
+          <button id="tutorial-next" class="tutorial-next-btn" type="button">
+            Próximo →
+          </button>
+        </div>
+      </div>
+
+      <!-- Dots de progresso -->
+      <div class="tutorial-dots" id="tutorial-dots" aria-hidden="true"></div>
+    </div>
+
+  </div><!-- /tutorial-overlay -->
+
+
+  <!-- ═══════════════════════════════════════════
+       TOAST DE NOTIFICAÇÃO
+  ════════════════════════════════════════════ -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
+  </div>
+  <!-- Lombada visível na capa fechada -->
+
+  <!-- ═══════════════════════════════════════════
+       SCRIPT PRINCIPAL
+  ════════════════════════════════════════════ -->
+  <script type="module" src="js/three-layer.js?v=30"></script>
+  <script src="js/tutorial.js?v=30"></script>
+  <script src="js/island-unlock.js?v=30"></script>
+  <script src="js/script.js?v=30"></script>
+</body>
+
+</html>
+
