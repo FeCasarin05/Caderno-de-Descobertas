@@ -43,10 +43,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const btn = loginForm.querySelector("button[type='submit']");
     btn.textContent = "Entrando...";
     btn.style.opacity = "0.8";
-    
+
     // Para login, pula o tutorial configurando a chave
     localStorage.setItem("caderno-descobertas-tutorial-visto", "1");
-    
+    localStorage.setItem("isLoggedIn", "true");
+
     setTimeout(() => {
       window.location.href = "index.html";
     }, 800);
@@ -55,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Mock Submit Cadastro
   signupForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    
+
     const familyName = document.getElementById("signup-family").value;
     if (familyName) {
       localStorage.setItem("familyName", familyName);
@@ -67,6 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Para cadastro, remove a chave para forçar o início do tutorial
     localStorage.removeItem("caderno-descobertas-tutorial-visto");
+    localStorage.setItem("isLoggedIn", "true");
 
     setTimeout(() => {
       window.location.href = "index.html";

@@ -13,6 +13,12 @@
   <link rel="stylesheet" href="css/tutorial.css?v=30" />
   <link rel="stylesheet" href="css/island-discovery.css?v=30" />
 
+  <script>
+    if (localStorage.getItem("isLoggedIn") !== "true") {
+      window.location.href = "login.html";
+    }
+  </script>
+
   <!-- Import Map para Three.js nativo (sem npm) -->
   <script type="importmap">
     {
@@ -321,7 +327,8 @@
             <div class="cover-inner-border">
               <div class="cover-top-ornament" aria-hidden="true">✦ ✦ ✦</div>
               <div class="cover-book-icon" aria-hidden="true">
-                <img src="SVG/LIRA ARARA.svg" alt="Lira Arara" style="height: 4.5rem; width: auto; object-fit: contain;">
+                <img src="SVG/LIRA ARARA.svg" alt="Lira Arara"
+                  style="height: 4.5rem; width: auto; object-fit: contain;">
               </div>
               <h2 class="cover-main-title">Livro de<br>Aventuras</h2>
               <p class="cover-sub-title">✦ Caderno de Descobertas ✦</p>
@@ -556,4 +563,3 @@
 </body>
 
 </html>
-
