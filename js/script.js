@@ -824,9 +824,18 @@ function initButtons() {
     }
   });
 
-  /* Configurações → toast por enquanto */
+  /* Configurações */
   document.getElementById("btn-settings")?.addEventListener("click", () => {
-    showToast("⚙️ Configurações em breve!", "success");
+    const familyName = localStorage.getItem("familyName") || "Ilha da Família Silva";
+    const familyNameEl = document.getElementById("settings-family-name");
+    if (familyNameEl) familyNameEl.textContent = familyName;
+    openOverlay("overlay-settings");
+  });
+
+  /* Logout */
+  document.getElementById("btn-logout")?.addEventListener("click", () => {
+    localStorage.removeItem("isLoggedIn");
+    window.location.href = "index.html";
   });
 }
 
@@ -844,6 +853,17 @@ function initOverlays() {
     if (e.key === "Escape" && !document.getElementById("overlay-distintivos")?.hidden) {
       closeOverlay("overlay-distintivos");
     }
+    if (e.key === "Escape" && !document.getElementById("overlay-settings")?.hidden) {
+      closeOverlay("overlay-settings");
+    }
+  });
+
+  /* Settings overlay close handlers */
+  document.getElementById("close-settings")?.addEventListener("click", () => {
+    closeOverlay("overlay-settings");
+  });
+  document.getElementById("backdrop-settings")?.addEventListener("click", () => {
+    closeOverlay("overlay-settings");
   });
 }
 

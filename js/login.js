@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("isLoggedIn", "true");
 
     setTimeout(() => {
-      window.location.href = "index.html";
+      window.location.href = "home.html";
     }, 800);
   });
 
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("isLoggedIn", "true");
 
     setTimeout(() => {
-      window.location.href = "index.html";
+      window.location.href = "home.html";
     }, 1000);
   });
 });
